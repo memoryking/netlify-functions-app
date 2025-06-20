@@ -1,0 +1,1264 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>고난도 학습 모드</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&family=Noto+Sans+KR:wght@400;700&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css"
+      rel="stylesheet"
+    />
+    <style>
+      /* 추가 스타일 */
+      .loading-spinner {
+        width: 40px;
+        height: 40px;
+        border: 3px solid #E5E7EB;
+        border-top: 3px solid #4F46E5;
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+      }
+      @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+      }
+      .toast-message {
+        position: fixed;
+        bottom: 20px;
+        left: 50%;
+        transform: translateX(-50%);
+        padding: 10px 20px;
+        color: white;
+        border-radius: 4px;
+        z-index: 9999;
+        opacity: 0;
+        transition: opacity 0.3s ease;
+      }
+      .toast-show {
+        opacity: 1;
+      }
+      .fade-in {
+        animation: fadeIn 0.3s;
+      }
+      @keyframes fadeIn {
+        from { opacity: 0; }
+        to { opacity: 1; }
+      }
+    </style>
+  </head>
+  <body>
+    <div id="app" class="w-full min-h-screen bg-gray-50 p-3">
+      <div class="max-w-4xl mx-auto">
+        <!-- 로딩 상태 표시 -->
+        <div id="loading-container" class="bg-white rounded-lg shadow p-4 mb-3">
+          <div class="flex items-center justify-center">
+            <div class="loading-spinner"></div>
+            <div class="ml-3">로딩 중... <span id="status-text" class="text-gray-500 text-sm">초기화</span></div>
+          </div>
+        </div>
+
+        <!-- 오류 메시지 -->
+        <div id="error-container" class="bg-white rounded-lg shadow p-4 mb-3 hidden">
+          <div id="error-message" class="text-red-600 mb-3">오류가 발생했습니다.</div>
+          <button 
+            id="retry-button"
+            class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded transition-colors"
+          >
+            다시 시도
+          </button>
+        </div>
+
+        <!-- 헤더 영역 -->
+        <div id="header" class="flex justify-between items-center mb-3 hidden">
+          <h1 class="text-xl font-bold text-indigo-600">
+            고난도 학습 모드 (<span id="word-count">0</span>개의 단어)
+          </h1>
+          <div class="flex space-x-2">
+            <button 
+              id="load-details-button"
+              class="bg-green-600 hover:bg-green-700 text-white p-1 px-2 rounded text-sm transition-colors"
+            >
+              추가 정보
+            </button>
+            <button 
+              id="refresh-button"
+              class="bg-indigo-600 hover:bg-indigo-700 text-white p-1 px-2 rounded text-sm transition-colors"
+            >
+              새로고침
+            </button>
+            <button 
+              id="close-button"
+              class="bg-red-500 hover:bg-red-600 text-white p-1 px-2 rounded text-sm transition-colors"
+            >
+              닫기
+            </button>
+          </div>
+        </div>
+
+        <!-- 단어 목록 컨테이너 -->
+        <div id="words-container" class="space-y-3 hidden"></div>
+
+        <!-- 빈 화면 메시지 -->
+        <div id="empty-container" class="bg-white rounded-lg shadow p-8 text-center hidden">
+          <p class="text-gray-500 mb-4">표시할 고난도 단어가 없습니다.</p>
+          <button
+            id="empty-refresh-button"
+            class="bg-indigo-600 hover:bg-indigo-700 text-white py-2 px-4 rounded transition-colors"
+          >
+            새로고침
+          </button>
+        </div>
+
+        <!-- 토스트 메시지 -->
+        <div id="toast" class="toast-message bg-blue-500">메시지</div>
+      </div>
+    </div>
+
+    <script>
+      // 전역 변수
+      const app = {
+        words: [],
+        loading: true,
+        error: null,
+        status: "초기화",
+        airtableLoading: false
+      };
+
+      // 요소 직접 접근
+      const elements = {
+        loadingContainer: document.getElementById('loading-container'),
+        errorContainer: document.getElementById('error-container'),
+        errorMessage: document.getElementById('error-message'),
+        retryButton: document.getElementById('retry-button'),
+        header: document.getElementById('header'),
+        wordCount: document.getElementById('word-count'),
+        loadDetailsButton: document.getElementById('load-details-button'),
+        refreshButton: document.getElementById('refresh-button'),
+        closeButton: document.getElementById('close-button'),
+        wordsContainer: document.getElementById('words-container'),
+        emptyContainer: document.getElementById('empty-container'),
+        emptyRefreshButton: document.getElementById('empty-refresh-button'),
+        statusText: document.getElementById('status-text'),
+        toast: document.getElementById('toast')
+      };
+
+      // Netlify 환경 감지
+      const isNetlifyEnvironment = window.location.hostname.includes('netlify.app') || 
+                                  window.location.hostname.includes('netlify.com');
+
+      // 전역 오류 핸들러 설정
+      window.onerror = function(message, source, lineno, colno, error) {
+        console.error('전역 오류:', message, 'Line:', lineno, 'Source:', source);
+        
+        // 치명적이지 않은 오류는 복구 시도
+        if (message.includes('undefined') || message.includes('null')) {
+          console.log('복구 가능한 오류, 데이터 로드 재시도...');
+          
+          setTimeout(function() {
+            if (app.words.length === 0) {
+              // 로컬 스토리지에서 복구 시도
+              const cachedWords = getFromLocalStorage();
+              if (cachedWords && cachedWords.length > 0) {
+                renderWords(cachedWords);
+                updateLoadingState(false, "오류 후 복구 완료");
+              } else {
+                // DB에서 직접 가져오기 시도
+                fetchWordsDirectly();
+              }
+            }
+          }, 1000);
+        }
+        
+        return true; // 기본 에러 핸들러도 실행
+      };
+
+      // 개선된 URL 파라미터 파싱 함수
+      function parseUrlParams() {
+        try {
+          console.log('=== URL 파라미터 파싱 시작 ===');
+          
+          // 1. 현재 URL 정보 로그
+          const fullUrl = window.location.href;
+          const search = window.location.search;
+          console.log('전체 URL:', fullUrl);
+          console.log('검색 문자열:', search);
+          
+          if (!search) {
+            console.log('검색 문자열이 없음');
+            return new URLSearchParams();
+          }
+          
+          // 2. urlParams 파라미터 확인
+          const directParams = new URLSearchParams(search);
+          const urlParamsValue = directParams.get('urlParams');
+          
+          if (urlParamsValue) {
+            console.log('urlParams 발견:', urlParamsValue.substring(0, 100) + '...');
+            
+            try {
+              const decodedParams = decodeURIComponent(urlParamsValue);
+              console.log('디코딩된 파라미터:', decodedParams.substring(0, 100) + '...');
+              
+              const finalParams = new URLSearchParams(decodedParams);
+              
+              // 파라미터 확인 로그
+              console.log('최종 파라미터 확인:');
+              for (const [key, value] of finalParams.entries()) {
+                if (key.includes('airtable')) {
+                  console.log(`- ${key}: ${value === 'null' ? 'NULL 값!' : (value ? '값 존재' : '값 없음')}`);
+                }
+              }
+              
+              return finalParams;
+            } catch (decodeError) {
+              console.error('디코딩 오류:', decodeError);
+              return new URLSearchParams();
+            }
+          }
+          
+          // 3. 직접 파라미터 파싱
+          console.log('직접 파라미터 파싱 시도');
+          const cleanSearch = search.startsWith('?') ? search.substring(1) : search;
+          return new URLSearchParams(cleanSearch);
+          
+        } catch (error) {
+          console.error('URL 파싱 오류:', error);
+          return new URLSearchParams();
+        } finally {
+          console.log('=== URL 파라미터 파싱 완료 ===');
+        }
+      }
+
+      // 토스트 메시지 표시
+      function showToast(message, type = 'info') {
+        const toast = elements.toast;
+        if (!toast) return;
+        
+        // 기존 타이머 제거
+        if (toast._timeout) {
+          clearTimeout(toast._timeout);
+          toast._timeout = null;
+        }
+        
+        // 배경색 설정
+        toast.className = 'toast-message';
+        switch (type) {
+          case 'success': toast.classList.add('bg-green-500'); break;
+          case 'error': toast.classList.add('bg-red-500'); break;
+          case 'warning': toast.classList.add('bg-yellow-500'); break;
+          default: toast.classList.add('bg-blue-500');
+        }
+        
+        toast.textContent = message;
+        toast.classList.add('toast-show');
+        
+        // 일정 시간 후 숨기기
+        toast._timeout = setTimeout(() => {
+          toast.classList.remove('toast-show');
+        }, 3000);
+      }
+
+      // 로딩 상태 업데이트
+      function updateLoadingState(isLoading, status) {
+        app.loading = isLoading;
+        app.status = status || app.status;
+        
+        if (elements.statusText) {
+          elements.statusText.textContent = app.status;
+        }
+        
+        if (elements.loadingContainer) {
+          elements.loadingContainer.style.display = isLoading ? 'block' : 'none';
+        }
+        
+        if (!isLoading) {
+          if (elements.header) {
+            elements.header.classList.remove('hidden');
+          }
+          
+          if (app.words.length > 0) {
+            if (elements.wordsContainer) {
+              elements.wordsContainer.classList.remove('hidden');
+            }
+            if (elements.emptyContainer) {
+              elements.emptyContainer.classList.add('hidden');
+            }
+          } else {
+            if (elements.wordsContainer) {
+              elements.wordsContainer.classList.add('hidden');
+            }
+            if (elements.emptyContainer) {
+              elements.emptyContainer.classList.remove('hidden');
+            }
+          }
+        } else {
+          if (elements.header) {
+            elements.header.classList.add('hidden');
+          }
+          if (elements.wordsContainer) {
+            elements.wordsContainer.classList.add('hidden');
+          }
+          if (elements.emptyContainer) {
+            elements.emptyContainer.classList.add('hidden');
+          }
+        }
+      }
+
+      // 에러 상태 업데이트
+      function updateErrorState(hasError, message) {
+        app.error = message || null;
+        
+        if (elements.errorContainer) {
+          elements.errorContainer.style.display = hasError ? 'block' : 'none';
+        }
+        
+        if (hasError) {
+          if (elements.errorMessage) {
+            elements.errorMessage.textContent = message;
+          }
+          
+          if (elements.loadingContainer) {
+            elements.loadingContainer.style.display = 'none';
+          }
+          
+          if (elements.header) {
+            elements.header.classList.add('hidden');
+          }
+          
+          if (elements.wordsContainer) {
+            elements.wordsContainer.classList.add('hidden');
+          }
+          
+          if (elements.emptyContainer) {
+            elements.emptyContainer.classList.add('hidden');
+          }
+        }
+      }
+
+      // VipUp 복호화 헬퍼 함수
+      function decryptVipUp(encryptedVipup) {
+        if (!encryptedVipup) return null;
+        
+        let decryptedVipup = encryptedVipup;
+        
+        // VipUpEncryption이 사용 가능한지 확인하고 먼저 복호화 시도
+        if (window.VipUpEncryption && typeof window.VipUpEncryption.isEncrypted === 'function') {
+          try {
+            // 암호화된 값인지 확인
+            if (window.VipUpEncryption.isEncrypted(decryptedVipup)) {
+              decryptedVipup = window.VipUpEncryption.decrypt(decryptedVipup);
+              console.log('VipUp 복호화 성공');
+            }
+          } catch (error) {
+            console.error('VipUp 복호화 오류:', error);
+          }
+        } else {
+          console.warn('VipUpEncryption 클래스를 사용할 수 없습니다');
+        }
+        
+        // 복호화 후에도 JSON 배열 형태 ["..."]인지 확인
+        if (typeof decryptedVipup === 'string' && decryptedVipup.startsWith('["') && decryptedVipup.endsWith('"]')) {
+          try {
+            const parsed = JSON.parse(decryptedVipup);
+            if (Array.isArray(parsed) && parsed.length > 0) {
+              decryptedVipup = parsed[0];
+              console.log('VipUp JSON 배열 파싱 성공 (복호화 후)');
+            }
+          } catch (parseError) {
+            console.warn('VipUp JSON 파싱 실패:', parseError);
+          }
+        }
+        
+        return decryptedVipup;
+      }
+
+      // 단어 목록 렌더링
+      function renderWords(words) {
+        if (!words || !Array.isArray(words)) {
+          console.error('유효하지 않은 단어 데이터:', words);
+          return;
+        }
+        
+        // 전역 단어 배열 업데이트
+        app.words = words;
+        
+        // 단어 개수 업데이트
+        if (elements.wordCount) {
+          elements.wordCount.textContent = app.words.length;
+        }
+        
+        // 단어 컨테이너 비우기
+        if (elements.wordsContainer) {
+          elements.wordsContainer.innerHTML = '';
+        }
+        
+        // 단어가 있는지 확인
+        if (app.words.length === 0) {
+          if (elements.wordsContainer) {
+            elements.wordsContainer.classList.add('hidden');
+          }
+          if (elements.emptyContainer) {
+            elements.emptyContainer.classList.remove('hidden');
+          }
+          return;
+        }
+        
+        // 각 단어에 대한 HTML 생성
+        app.words.forEach(word => {
+          try {
+            // null 체크
+            if (!word) return;
+            
+            // 각 단어를 위한 컨테이너 생성
+            const wordElement = document.createElement('div');
+            wordElement.className = 'bg-white rounded-lg shadow overflow-hidden hover:shadow-md transition-shadow';
+            wordElement.setAttribute('data-id', word._id || word.airtableId || '');
+            
+            // HTML 템플릿
+            let html = `
+              <div class="p-3">
+                <!-- 1. word (단어) -->
+                <div class="flex justify-between items-start mb-2">
+                  <h2 class="text-lg font-bold">${escapeHTML(word.word || '')}</h2>
+                  <span class="px-2 py-0.5 bg-red-100 text-red-600 rounded-full text-xs">
+                    난이도: ${Number(word.difficult) >= 6 ? "⭐⭐" : (Number(word.difficult) >= 2 ? "⭐" : "")}
+                  </span>
+                </div>
+                
+                <!-- 2. meaning (뜻) -->
+                <p class="text-base text-gray-700 mb-2">${escapeHTML(word.meaning || '')}</p>
+            `;
+            
+            // 발음이 있는 경우
+            if (word.pronunciation) {
+              html += `
+                <!-- 3. pronunciation (발음) -->
+                <p class="text-sm text-gray-600 mb-2">
+                  <span class="font-medium">발음:</span> ${escapeHTML(word.pronunciation)}
+                </p>
+              `;
+            }
+            
+            // 비법이 있는 경우 - 복호화 처리 추가
+            if (word.vipup) {
+              const decryptedVipup = decryptVipUp(word.vipup);
+              if (decryptedVipup) {
+                html += `
+                  <!-- 4. vipup (비법) -->
+                  <div class="bg-indigo-50 p-2 rounded-lg mb-2 text-sm">
+                    <p class="text-indigo-700">${escapeHTML(decryptedVipup)}</p>
+                  </div>
+                `;
+              }
+            }
+            
+            // 컨텍스트가 있는 경우
+            if (word.context) {
+              html += `
+                <!-- 5. context (컨텍스트) -->
+                <div class="bg-blue-50 p-2 rounded-lg mb-2 text-sm">
+                  <p class="text-blue-700">${escapeHTML(word.context)}</p>
+                </div>
+              `;
+            }
+            
+            // 멀티미디어 요소를 위한 컨테이너 시작
+            html += `<div class="space-y-2">`;
+            
+            // 오디오가 있는 경우
+            if (word.audio) {
+              html += `
+                <!-- 6. audio (오디오) -->
+                <audio 
+                  controls 
+                  class="w-full h-8 mb-2"
+                  preload="none"
+                  onerror="this.style.display='none'"
+                >
+                  <source src="${word.audio}" type="audio/mpeg">
+                  오디오를 지원하지 않는 브라우저입니다.
+                </audio>
+              `;
+            }
+            
+            // 이미지가 있는 경우
+            if (word.image) {
+              html += `
+                <!-- 7. image (이미지) -->
+                <img 
+                  src="${word.image}" 
+                  alt="${escapeHTML(word.word || '')}"
+                  class="max-w-full max-h-80 object-contain rounded-lg shadow-md mb-3 mx-auto" 
+                  loading="lazy"
+                  onerror="this.style.display='none'"
+                >
+              `;
+            }
+            
+            // 이미지 텍스트가 있는 경우
+            if (word.imagetext) {
+              html += `
+                <!-- 8. imagetext (이미지 텍스트) -->
+                <div class="bg-green-50 p-2 rounded-lg mb-2 text-sm">
+                  <p class="text-green-700">${escapeHTML(word.imagetext)}</p>
+                </div>
+              `;
+            }
+            
+            // 비디오가 있는 경우
+            if (word.video) {
+              html += `
+                <!-- 9. video (비디오) -->
+                <div class="relative w-full mb-2" style="padding-bottom: 40%;">
+                  <iframe
+                    class="absolute top-0 left-0 w-full h-full rounded-lg"
+                    src="${getEmbedUrl(word.video)}"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                    allowFullScreen
+                    onerror="this.parentNode.style.display='none'"
+                  ></iframe>
+                </div>
+              `;
+            }
+            
+            // 비디오 텍스트가 있는 경우
+            if (word.videotext) {
+              html += `
+                <!-- 10. videotext (비디오 텍스트) -->
+                <div class="bg-purple-50 p-2 rounded-lg mb-2 text-sm">
+                  <p class="text-purple-700">${escapeHTML(word.videotext)}</p>
+                </div>
+              `;
+            }
+            
+            // HTML 닫기
+            html += `
+                </div>
+              </div>
+            `;
+            
+            // HTML 설정 및 단어 요소 추가
+            wordElement.innerHTML = html;
+            elements.wordsContainer.appendChild(wordElement);
+          } catch (error) {
+            console.error('단어 렌더링 오류:', error, word);
+          }
+        });
+        
+        // 컨테이너 표시
+        if (elements.wordsContainer) {
+          elements.wordsContainer.classList.remove('hidden');
+        }
+        if (elements.emptyContainer) {
+          elements.emptyContainer.classList.add('hidden');
+        }
+      }
+
+      // 부모 창에서 데이터 가져오기 (개선됨)
+      function getDataFromParent() {
+        try {
+          console.log('부모 창에서 데이터 가져오기 시도');
+          updateLoadingState(true, "부모 창에서 데이터 가져오는 중...");
+          
+          // 1. 앱 객체 준비
+          if (!window.app) {
+            window.app = {};
+          }
+          
+          // 2. 데이터 소스 확인
+          let words = null;
+          let dataSource = '알 수 없음';
+          
+          // 2.1. 먼저 전역 변수 확인 (자식 창에 이미 세팅되었을 수 있음)
+          if (window.difficultWords && Array.isArray(window.difficultWords)) {
+            console.log('자식 창의 difficultWords 발견');
+            words = window.difficultWords;
+            dataSource = '전역 변수';
+          }
+          // 2.2. 부모 창 확인
+          else if (window.opener && !window.opener.closed) {
+            console.log('부모 창 접근 성공');
+            
+            // VipUpEncryption 클래스 가져오기
+            if (!window.VipUpEncryption && window.opener.VipUpEncryption) {
+              window.VipUpEncryption = window.opener.VipUpEncryption;
+              console.log('부모 창에서 VipUpEncryption 가져옴');
+            }
+            
+            // 2.2.1. 부모 창의 difficultWords 확인
+            if (window.opener.difficultWords && Array.isArray(window.opener.difficultWords)) {
+              console.log('부모 창의 difficultWords 발견');
+              words = window.opener.difficultWords;
+              dataSource = '부모 창 변수';
+            }
+            
+            // 2.2.2. 부모 창의 app 객체 접근
+            if (window.opener.app) {
+              console.log('부모 창의 앱 객체 발견');
+              
+              // 2.2.3. 부모 창의 dbManager 접근
+              if (window.opener.app.dbManager) {
+                window.app.dbManager = window.opener.app.dbManager;
+                console.log('부모 창의 dbManager 복사 성공');
+              }
+            }
+          }
+          
+          // 3. 데이터 처리
+          if (words && words.length > 0) {
+            console.log(`${dataSource}에서 ${words.length}개 단어 발견`);
+            
+            // 로컬 변수에 복사
+            window.difficultWords = [...words];
+            
+            // 데이터를 로컬 스토리지에 백업
+            try {
+              localStorage.setItem('difficult_words_cache', JSON.stringify(words));
+              localStorage.setItem('difficult_words_timestamp', Date.now().toString());
+              console.log('단어 데이터 로컬 스토리지 백업 완료');
+            } catch (e) {
+              console.warn('로컬 스토리지 저장 실패:', e);
+            }
+            
+            // 렌더링
+            renderWords(words);
+            updateLoadingState(false, `${dataSource}에서 데이터 수신 완료`);
+            showToast(`${words.length}개의 고난도 단어를 로드했습니다.`, 'success');
+            
+            return true;
+          }
+          
+          console.log('부모 창에서 데이터를 찾을 수 없음');
+          return false;
+        } catch (error) {
+          console.error('부모 창에서 데이터 가져오기 오류:', error);
+          updateErrorState(true, `데이터 가져오기 오류: ${error.message}`);
+          return false;
+        }
+      }
+
+      // 로컬 스토리지에서 데이터 가져오기 (개선됨)
+      function getFromLocalStorage() {
+        try {
+          console.log('로컬 스토리지에서 데이터 가져오기 시도');
+          const cachedData = localStorage.getItem('difficult_words_cache');
+          const timestamp = localStorage.getItem('difficult_words_timestamp');
+          
+          if (!cachedData) {
+            console.log('로컬 스토리지에 캐시된 데이터 없음');
+            return null;
+          }
+          
+          // 캐시가 24시간 이상 지났으면 무효화
+          if (timestamp && (Date.now() - parseInt(timestamp) > 24 * 60 * 60 * 1000)) {
+            console.log('캐시가 만료되어 제거됨 (24시간 초과)');
+            localStorage.removeItem('difficult_words_cache');
+            localStorage.removeItem('difficult_words_timestamp');
+            return null;
+          }
+          
+          // 캐시 데이터 파싱
+          try {
+            const parsedData = JSON.parse(cachedData);
+            console.log(`로컬 스토리지에서 ${parsedData.length}개 단어 복구 성공`);
+            
+            // 전역 변수에도 저장
+            window.difficultWords = parsedData;
+            
+            return parsedData;
+          } catch (parseError) {
+            console.error('캐시 데이터 파싱 오류:', parseError);
+            return null;
+          }
+        } catch (e) {
+          console.error('로컬 스토리지 접근 오류:', e);
+          return null;
+        }
+      }
+
+      // 직접 DB에서 데이터 가져오기 (개선됨)
+      async function fetchWordsDirectly() {
+        try {
+          console.log('직접 DB에서 고난도 단어 가져오기 시도');
+          updateLoadingState(true, "DB에서 데이터 가져오는 중...");
+          
+          // 1. IndexedDB 접근 확인
+          if (!window.app) {
+            window.app = {};
+          }
+          
+          if (!window.app.dbManager) {
+            if (!getDataFromParent()) {
+              throw new Error('dbManager를 찾을 수 없습니다. 부모 창에서 데이터를 가져올 수 없습니다.');
+            }
+          }
+          
+          if (!window.app.dbManager) {
+            throw new Error('앱 초기화에 실패했습니다. dbManager를 찾을 수 없습니다.');
+          }
+          
+          // 2. 고난도 단어 필터
+          const filter = { isStudied: "1", difficult: { $gt: 2 } };
+          const sort = { field: 'difficult', direction: 'desc' };
+          const limit = 100;
+          
+          console.log('DB 쿼리 실행 중:', { filter, sort, limit });
+          
+          // 3. DB에서 가져오기
+          const words = await window.app.dbManager.getWords(filter, limit, sort);
+          console.log(`DB에서 직접 ${words.length}개 단어 가져옴`);
+          
+          // 4. 데이터를 로컬 스토리지에 백업
+          try {
+            localStorage.setItem('difficult_words_cache', JSON.stringify(words));
+            localStorage.setItem('difficult_words_timestamp', Date.now().toString());
+            console.log('단어 데이터 로컬 스토리지 백업 완료');
+          } catch (e) {
+            console.warn('로컬 스토리지 저장 실패:', e);
+          }
+          
+          // 5. 전역 변수에도 저장
+          window.difficultWords = words;
+          
+          // 6. 렌더링
+          renderWords(words);
+          updateLoadingState(false, "DB에서 로드 완료");
+          showToast(`${words.length}개의 고난도 단어를 로드했습니다.`, 'success');
+          
+          return words;
+        } catch (error) {
+          console.error('직접 DB 접근 오류:', error);
+          updateErrorState(true, `직접 DB 접근 오류: ${error.message || '알 수 없는 오류'}`);
+          return [];
+        }
+      }
+
+      // 아이디 기반 에어테이블 데이터 로드 함수 (Netlify 프록시 지원)
+      async function loadEssentialDataById() {
+        try {
+          // 이미 처리 중인지 확인
+          if (window._loadingData) {
+            console.log('이미 데이터 로드 중...');
+            return;
+          }
+          
+          window._loadingData = true;
+          console.log('=== 에어테이블에서 ID 기반으로 추가 정보 로드 시작 ===');
+          
+          // UI 업데이트
+          if (elements.loadDetailsButton) {
+            elements.loadDetailsButton.disabled = true;
+            elements.loadDetailsButton.textContent = '로딩중...';
+          }
+          showToast('에어테이블에서 추가 정보를 로드하는 중...', 'info');
+          
+          // URL 파라미터 가져오기
+          const params = parseUrlParams();
+          
+          // 필수 파라미터 확인
+          const airtableApiKey = params.get('airtable_apikey');
+          const airtableContentsDB = params.get('airtable_contents_DB');
+          const airtableContentsTable = params.get('airtable_contents_table');
+          
+          console.log('=== 에어테이블 파라미터 상세 확인 ===');
+          console.log('Netlify 환경:', isNetlifyEnvironment);
+          console.log('API 키:', {
+            존재: !!airtableApiKey,
+            타입: typeof airtableApiKey,
+            길이: airtableApiKey ? airtableApiKey.length : 0,
+            값: airtableApiKey ? `${airtableApiKey.substring(0, 15)}...` : 'null',
+            null체크: airtableApiKey === 'null'
+          });
+          console.log('콘텐츠 DB:', {
+            존재: !!airtableContentsDB,
+            타입: typeof airtableContentsDB,
+            값: airtableContentsDB ? `${airtableContentsDB.substring(0, 40)}...` : 'null',
+            null체크: airtableContentsDB === 'null'
+          });
+          console.log('콘텐츠 테이블:', {
+            존재: !!airtableContentsTable,
+            값: airtableContentsTable || 'null',
+            null체크: airtableContentsTable === 'null'
+          });
+          console.log('=======================================');
+          
+          // Netlify 환경이 아닐 때만 API 키 체크
+          if (!isNetlifyEnvironment) {
+            if (!airtableApiKey || airtableApiKey === 'null' || airtableApiKey === 'undefined' || airtableApiKey.length < 10) {
+              throw new Error(`에어테이블 API 키가 유효하지 않습니다. (값: ${airtableApiKey})`);
+            }
+          }
+          
+          if (!airtableContentsDB || airtableContentsDB === 'null' || airtableContentsDB === 'undefined' || !airtableContentsDB.startsWith('https://')) {
+            throw new Error(`에어테이블 콘텐츠 DB URL이 유효하지 않습니다. (값: ${airtableContentsDB})`);
+          }
+          
+          if (!airtableContentsTable || airtableContentsTable === 'null' || airtableContentsTable === 'undefined') {
+            throw new Error(`에어테이블 콘텐츠 테이블명이 유효하지 않습니다. (값: ${airtableContentsTable})`);
+          }
+          
+          // 현재 단어 데이터 확인
+          if (!app.words || app.words.length === 0) {
+            throw new Error('로드할 단어 데이터가 없습니다');
+          }
+          
+          console.log(`${app.words.length}개 단어에 대해 ID 기반 데이터 로드 시작`);
+          
+          // airtableId가 있는 단어만 필터링
+          const wordsWithId = app.words.filter(word => word.airtableId && word.airtableId !== 'null');
+          console.log(`airtableId가 있는 단어: ${wordsWithId.length}개`);
+          
+          if (wordsWithId.length === 0) {
+            throw new Error('airtableId가 있는 단어가 없습니다');
+          }
+          
+          // 배치 처리 설정
+          const batchSize = 3;
+          const batches = [];
+          
+          for (let i = 0; i < wordsWithId.length; i += batchSize) {
+            batches.push(wordsWithId.slice(i, i + batchSize));
+          }
+          
+          console.log(`${batches.length}개 배치로 처리 (배치당 최대 ${batchSize}개 단어)`);
+          
+          // 결과를 저장할 배열
+          const enhancedWords = [...app.words];
+          let successCount = 0;
+          let errorCount = 0;
+          
+          // 각 배치 처리
+          for (let batchIndex = 0; batchIndex < batches.length; batchIndex++) {
+            console.log(`배치 ${batchIndex + 1}/${batches.length} 처리 시작`);
+            const batch = batches[batchIndex];
+            
+            // 배치 내 단어 병렬 처리
+            const batchResults = await Promise.all(
+              batch.map(async (word) => {
+                try {
+                  console.log(`'${word.word}' (ID: ${word.airtableId}) 데이터 요청 시작`);
+                  
+                  // ID 기반 직접 URL 생성
+                  const recordUrl = `${airtableContentsDB}/${airtableContentsTable}/${word.airtableId}`;
+                  
+                  console.log(`요청 URL: ${recordUrl}`);
+                  
+                  // API 요청 - Netlify 환경에 따라 다르게 처리
+                  let response;
+                  
+                  if (isNetlifyEnvironment) {
+                    // Netlify 환경: 프록시 사용
+                    const proxyUrl = '/.netlify/functions/airtable-proxy';
+                    response = await fetch(proxyUrl, {
+                      method: 'POST',
+                      headers: {
+                        'Content-Type': 'application/json'
+                      },
+                      body: JSON.stringify({
+                        url: recordUrl,
+                        method: 'GET'
+                      })
+                    });
+                  } else {
+                    // 개발 환경: 직접 요청
+                    const controller = new AbortController();
+                    const timeoutId = setTimeout(() => controller.abort(), 15000); // 15초 타임아웃
+                    
+                    response = await fetch(recordUrl, { 
+                      method: "GET",
+                      headers: { 
+                        "Authorization": `Bearer ${airtableApiKey}`,
+                        "Accept": "application/json"
+                      },
+                      signal: controller.signal
+                    });
+                    
+                    clearTimeout(timeoutId);
+                  }
+                  
+                  if (!response.ok) {
+                    console.error(`'${word.word}' API 응답 오류:`, {
+                      status: response.status,
+                      statusText: response.statusText,
+                      url: recordUrl.substring(0, 100) + '...'
+                    });
+                    errorCount++;
+                    return word;
+                  }
+                  
+                  // 응답 데이터 추출
+                  const data = await response.json();
+                  if (!data || !data.fields) {
+                    console.warn(`'${word.word}' 레코드 필드 없음`);
+                    return word;
+                  }
+                  
+                  console.log(`'${word.word}' 레코드 필드:`, Object.keys(data.fields).join(', '));
+                  
+                  // 각 필드 안전하게 추출
+                  const result = { ...word };
+                  
+                  // 필드 추출 헬퍼 함수
+                  const safeExtract = (fieldName, defaultValue = "") => {
+                    try {
+                      return data.fields[fieldName] || defaultValue;
+                    } catch (e) {
+                      console.error(`'${word.word}' ${fieldName} 처리 오류:`, e);
+                      return defaultValue;
+                    }
+                  };
+                  
+                  // 배열 필드 추출 헬퍼 함수
+                  const safeExtractArray = (fieldName) => {
+                    try {
+                      const field = data.fields[fieldName];
+                      if (field && Array.isArray(field) && field.length > 0) {
+                        return field[0].url || "";
+                      }
+                      return "";
+                    } catch (e) {
+                      console.error(`'${word.word}' ${fieldName} 배열 처리 오류:`, e);
+                      return "";
+                    }
+                  };
+                  
+                  // 각 필드 추출
+                  result.pronunciation = safeExtract('pronunciation');
+                  result.vipup = safeExtract('vipup');
+                  result.context = safeExtract('context');
+                  result.imagetext = safeExtract('imagetext');
+                  result.videotext = safeExtract('videotext');
+                  result.image = safeExtractArray('image');
+                  result.audio = safeExtractArray('audio');
+                  
+                  // 비디오 필드 특별 처리
+                  try {
+                    if (data.fields.video) {
+                      let videoUrl = "";
+                      const videoField = data.fields.video;
+                      
+                      if (typeof videoField === 'string') {
+                        videoUrl = videoField.trim();
+                      } else if (Array.isArray(videoField) && videoField.length > 0) {
+                        if (typeof videoField[0] === 'string') {
+                          videoUrl = videoField[0].trim();
+                        } else if (videoField[0] && videoField[0].url) {
+                          videoUrl = videoField[0].url.trim();
+                        }
+                      } else if (typeof videoField === 'object' && videoField !== null) {
+                        videoUrl = videoField.url || "";
+                        
+                        // 다른 가능한 속성들도 확인
+                        if (!videoUrl) {
+                          const possibleProps = ['url', 'link', 'videoUrl', 'src'];
+                          for (const prop of possibleProps) {
+                            if (videoField[prop]) {
+                              videoUrl = String(videoField[prop]).trim();
+                              break;
+                            }
+                          }
+                        }
+                      }
+                      
+                      // YouTube/Vimeo URL 유효성 검사
+                      const isValidUrl = videoUrl && (
+                        videoUrl.includes('youtube.com') || 
+                        videoUrl.includes('youtu.be') || 
+                        videoUrl.includes('vimeo.com')
+                      );
+                      
+                      result.video = isValidUrl ? videoUrl : "";
+                    }
+                  } catch (e) {
+                    console.error(`'${word.word}' 비디오 처리 오류:`, e);
+                    result.video = "";
+                  }
+                  
+                  // 성공 여부 확인
+                  const hasNewData = result.pronunciation || result.vipup || result.image || 
+                                    result.audio || result.video || result.context || 
+                                    result.imagetext || result.videotext;
+                  
+                  if (hasNewData) {
+                    successCount++;
+                    console.log(`'${word.word}' 데이터 로드 완료 (${Object.keys(data.fields).length}개 필드)`);
+                  } else {
+                    console.log(`'${word.word}' 추가 데이터 없음`);
+                  }
+                  
+                  return result;
+                } catch (error) {
+                  console.error(`'${word.word}' 에어테이블 요청 오류:`, error);
+                  errorCount++;
+                  return word;
+                }
+              })
+            );
+            
+            // 결과를 원본 배열에 병합
+            batchResults.forEach((result) => {
+              const originalIndex = app.words.findIndex(w => w._id === result._id || w.word === result.word);
+              if (originalIndex !== -1) {
+                enhancedWords[originalIndex] = result;
+              }
+            });
+            
+            // 진행 상황 표시
+            const progress = ((batchIndex + 1) / batches.length * 100).toFixed(0);
+            console.log(`진행률: ${progress}% (${batchIndex + 1}/${batches.length})`);
+            
+            // 과도한 요청 방지를 위한 지연
+            if (batchIndex < batches.length - 1) {
+              console.log('API 제한 방지를 위한 지연...');
+              await new Promise(resolve => setTimeout(resolve, 500));
+            }
+          }
+          
+          // 결과 렌더링
+          renderWords(enhancedWords);
+          
+          // 로컬 스토리지에 결과 캐싱
+          try {
+            localStorage.setItem('difficult_words_cache', JSON.stringify(enhancedWords));
+            localStorage.setItem('difficult_words_timestamp', Date.now().toString());
+            console.log('단어 데이터 로컬 스토리지 백업 완료');
+          } catch (e) {
+            console.warn('로컬 스토리지 저장 실패:', e);
+          }
+          
+          // 전역 변수 업데이트
+          window.difficultWords = enhancedWords;
+          
+          console.log(`에어테이블 데이터 로드 완료: 성공 ${successCount}개, 오류 ${errorCount}개`);
+          
+          // 결과에 따른 토스트 메시지
+          if (successCount > 0) {
+            showToast(`${successCount}개 단어에 추가 정보를 로드했습니다.${errorCount > 0 ? ` (${errorCount}개 오류)` : ''}`, 'success');
+          } else if (errorCount > 0) {
+            showToast(`추가 정보 로드 중 ${errorCount}개 오류가 발생했습니다.`, 'warning');
+          } else {
+            showToast('추가 정보가 없습니다.', 'info');
+          }
+          
+          return true;
+        } catch (error) {
+          console.error('에어테이블 데이터 로드 오류:', error);
+          showToast(`오류: ${error.message}`, 'error');
+          return false;
+        } finally {
+          window._loadingData = false;
+          if (elements.loadDetailsButton) {
+            elements.loadDetailsButton.disabled = false;
+            elements.loadDetailsButton.textContent = '추가 정보';
+          }
+        }
+      }
+
+      // 에어테이블에서 추가 정보 가져오기
+      async function loadAdditionalData() {
+        return loadEssentialDataById();
+      }
+
+      // 새로고침
+      async function handleRefresh() {
+        console.log('새로고침 시작');
+        updateLoadingState(true, "새로고침 중...");
+        updateErrorState(false);
+        
+        try {
+          // 1. 부모 창에서 데이터 가져오기
+          if (getDataFromParent()) {
+            console.log('부모 창에서 데이터 가져오기 성공');
+            return;
+          }
+          
+          // 2. 로컬 스토리지에서 가져오기
+          const cachedWords = getFromLocalStorage();
+          if (cachedWords && cachedWords.length > 0) {
+            console.log('로컬 스토리지에서 데이터 가져오기 성공');
+            renderWords(cachedWords);
+            updateLoadingState(false, "캐시에서 로드 완료");
+            showToast(`캐시에서 ${cachedWords.length}개 단어를 로드했습니다.`, 'info');
+            return;
+          }
+          
+          // 3. 직접 DB에서 가져오기
+          console.log('DB에서 직접 데이터 가져오기 시도');
+          await fetchWordsDirectly();
+        } catch (error) {
+          console.error('새로고침 오류:', error);
+          updateErrorState(true, `새로고침 오류: ${error.message || '알 수 없는 오류'}`);
+        }
+      }
+
+      // HTML 이스케이프 함수
+      function escapeHTML(str) {
+        if (str === null || str === undefined) return '';
+        
+        return String(str)
+          .replace(/&/g, '&amp;')
+          .replace(/</g, '&lt;')
+          .replace(/>/g, '&gt;')
+          .replace(/"/g, '&quot;')
+          .replace(/'/g, '&#039;');
+      }
+
+      // 비디오 임베드 URL 생성
+      function getEmbedUrl(url) {
+        if (!url) return '';
+        
+        try {
+          // YouTube
+          const youtubeMatch = url.match(/(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/i);
+          if (youtubeMatch && youtubeMatch[1]) {
+            console.log('YouTube 동영상 감지:', youtubeMatch[1]);
+            return `https://www.youtube.com/embed/${youtubeMatch[1]}`;
+          }
+          
+          // Vimeo
+          const vimeoMatch = url.match(/vimeo\.com\/(?:channels\/(?:\w+\/)?|groups\/(?:[^\/]*)\/videos\/|album\/(?:\d+)\/video\/|)(\d+)(?:$|\/|\?)/i);
+          if (vimeoMatch && vimeoMatch[1]) {
+            console.log('Vimeo 동영상 감지:', vimeoMatch[1]);
+            return `https://player.vimeo.com/video/${vimeoMatch[1]}`;
+          }
+        } catch (error) {
+          console.error('동영상 URL 변환 오류:', error);
+        }
+        
+        // 매치되지 않을 경우 원본 반환
+        return url;
+      }
+
+      // 앱 초기화 함수
+      async function initializeApp() {
+        console.log('앱 초기화 시작...');
+        console.log('Netlify 환경:', isNetlifyEnvironment);
+        
+        try {
+          // 로딩 상태 표시
+          updateLoadingState(true, "초기화 중...");
+          
+          // VipUpEncryption 클래스 로드 대기
+          if (!window.VipUpEncryption && window.opener && window.opener.VipUpEncryption) {
+            window.VipUpEncryption = window.opener.VipUpEncryption;
+            console.log('부모 창에서 VipUpEncryption 가져옴');
+          }
+          
+          // 1. 이벤트 리스너 설정
+          setupEventListeners();
+          
+          // 2. 여러 소스에서 데이터 가져오기 시도
+          
+          // 2.1. 부모 창에서 데이터 가져오기 시도
+          if (getDataFromParent()) {
+            console.log('부모 창에서 데이터 가져오기 성공');
+            return;
+          }
+          
+          // 2.2. 로컬 스토리지에서 가져오기 시도
+          const cachedWords = getFromLocalStorage();
+          if (cachedWords && cachedWords.length > 0) {
+            console.log('로컬 스토리지에서 데이터 복구 성공');
+            renderWords(cachedWords);
+            updateLoadingState(false, "캐시에서 로드 완료");
+            showToast(`캐시에서 ${cachedWords.length}개 단어를 로드했습니다.`, 'info');
+            return;
+          }
+          
+          // 2.3. 직접 DB에서 가져오기 시도
+          await fetchWordsDirectly();
+        } catch (error) {
+          console.error('초기화 오류:', error);
+          updateErrorState(true, `초기화 오류: ${error.message || '알 수 없는 오류'}`);
+        }
+      }
+
+      // 이벤트 리스너 설정
+      function setupEventListeners() {
+        console.log('이벤트 리스너 설정 중...');
+        
+        // 이벤트 리스너 설정
+        if (elements.retryButton) {
+          elements.retryButton.addEventListener('click', handleRefresh);
+        }
+        
+        if (elements.refreshButton) {
+          elements.refreshButton.addEventListener('click', handleRefresh);
+        }
+        
+        if (elements.emptyRefreshButton) {
+          elements.emptyRefreshButton.addEventListener('click', handleRefresh);
+        }
+        
+        if (elements.loadDetailsButton) {
+          elements.loadDetailsButton.addEventListener('click', loadAdditionalData);
+        }
+        
+        if (elements.closeButton) {
+          elements.closeButton.addEventListener('click', () => window.close());
+        }
+        
+        console.log('이벤트 리스너 설정 완료');
+      }
+
+      // difficultDataReady 이벤트 핸들러
+      document.addEventListener('difficultDataReady', function(event) {
+        console.log('difficultDataReady 이벤트 수신됨');
+        
+        // 이미 데이터가 로드되었는지 확인
+        if (app.words && app.words.length > 0) {
+          console.log('이미 데이터가 로드됨, 이벤트 무시');
+          return;
+        }
+        
+        // 데이터 가져오기 시도
+        getDataFromParent();
+      });
+
+      // 안전장치: 페이지 로드 후 5초 동안 데이터가 없으면 복구 시도
+      window.addEventListener('load', function() {
+        setTimeout(function() {
+          if (app.words.length === 0 && !app.error) {
+            console.log('페이지 로드 후 5초 동안 데이터가 없음, 복구 시도');
+            
+            // 로컬 스토리지에서 복구 시도
+            const cachedWords = getFromLocalStorage();
+            if (cachedWords && cachedWords.length > 0) {
+              renderWords(cachedWords);
+              updateLoadingState(false, "백업에서 복구 완료");
+            } else {
+              // 직접 DB에서 가져오기 시도
+              fetchWordsDirectly();
+            }
+          }
+        }, 5000);
+      });
+
+      // DOMContentLoaded 이벤트에서 앱 초기화
+      document.addEventListener('DOMContentLoaded', initializeApp);
+      
+      // 부모 창에서 직접 데이터를 설정하는 경우를 처리
+      if (window.difficultWords && Array.isArray(window.difficultWords)) {
+        console.log('이미 전역 변수에 데이터가 있음');
+        
+        // DOM이 로드되면 즉시 렌더링
+        document.addEventListener('DOMContentLoaded', function() {
+          console.log('DOM 로드 완료, 전역 변수 데이터 렌더링');
+          
+          // VipUpEncryption 클래스 확인
+          if (!window.VipUpEncryption && window.opener && window.opener.VipUpEncryption) {
+            window.VipUpEncryption = window.opener.VipUpEncryption;
+            console.log('부모 창에서 VipUpEncryption 가져옴');
+          }
+          
+          renderWords(window.difficultWords);
+          updateLoadingState(false, "전역 변수에서 로드 완료");
+        });
+      }
+    </script>
+  </body>
+</html>

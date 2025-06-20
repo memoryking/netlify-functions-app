@@ -1,0 +1,3177 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&family=Noto+Sans+KR:wght@400;700&display=swap" rel="stylesheet">
+    <title>수능영단어 - 콘텐츠 기반 학습</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div id="appLoadingOverlay" class="app-loading-overlay" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 999999;">
+        <div class="app-loading-content">
+            <div class="app-loading-spinner"></div>
+            <div class="app-loading-text">앱을 초기화하는 중...</div>
+            <div class="app-loading-progress">
+                <div class="app-loading-progress-bar">
+                    <div class="app-loading-progress-fill"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+	<!-- 다운로드 진행률 오버레이 -->
+	<div id="downloadOverlay" class="download-overlay">
+		<div class="download-content">
+			<div class="download-icon">
+				<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+					<path d="M12 2L12 15M12 15L17 10M12 15L7 10" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+					<path d="M3 20H21" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+				</svg>
+			</div>
+			<div class="download-text">단어를 다운로드하는 중...</div>
+			<div class="download-progress">0%</div>
+			<div class="download-bar">
+				<div class="download-bar-fill"></div>
+			</div>
+			<div class="download-subtitle">잠시만 기다려주세요</div>
+		</div>
+	</div>
+	<!-- 새로운 오프라인 표시기 (단 하나만) -->
+	<div id="offlineIndicator" style="display: none; position: fixed; top: 40px; left: 50%; transform: translateX(-50%); background: rgba(255, 70, 70, 0.9); color: white; padding: 8px 16px; border-radius: 8px; font-size: 14px; font-weight: 500; z-index: 1000; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);">오프라인 모드에서 작동 중입니다</div>
+
+    <div class="container">
+        <!-- 메인 화면 (수능영단어 대시보드) -->
+        <div id="mainScreen" class="screen active">
+            <!-- 메인 타이틀 - contents 값으로 동적 설정 -->
+            <span id="dashboardTitle" class="main-title">수능영단어</span>
+    
+            <!-- 원형 프로그레스 차트 -->
+            <div class="progress-circle-container">
+                <svg class="progress-circle" viewBox="0 0 200 200">
+                    <circle class="progress-circle-bg" cx="100" cy="100" r="70" />
+                    <circle class="progress-circle-fill" cx="100" cy="100" r="70" />
+                </svg>
+                <div class="progress-text">
+                    <span id="progressPercentage">0</span>%
+                </div>
+            </div>
+            
+            <!-- 카테고리 카드 그리드 -->
+            <div class="stats-grid">
+                <!-- NEW 카드 -->
+                <div class="stats-card" id="newWordsBtn">
+                    <div class="stats-icon new-icon">
+                        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+							<path d="M21 5C19.89 4.65 18.67 4.5 17.5 4.5C15.55 4.5 13.45 4.9 12 6C10.55 4.9 8.45 4.5 6.5 4.5C4.55 4.5 2.45 4.9 1 6V20.65C1 20.9 1.25 21.15 1.5 21.15C1.6 21.15 1.65 21.1 1.75 21.1C3.1 20.45 5.05 20 6.5 20C8.45 20 10.55 20.4 12 21.5C13.35 20.65 15.8 20 17.5 20C19.15 20 20.85 20.3 22.25 21.05C22.35 21.1 22.4 21.1 22.5 21.1C22.75 21.1 23 20.85 23 20.6V6C22.4 5.55 21.75 5.25 21 5ZM21 18.5C19.9 18.15 18.7 18 17.5 18C15.8 18 13.35 18.65 12 19.5V8C13.35 7.15 15.8 6.5 17.5 6.5C18.7 6.5 19.9 6.65 21 7V18.5Z" fill="currentColor"/>
+						</svg>
+                    </div>
+                    <div class="stats-info">
+                        <div class="stats-title">NEW</div>
+                        <div class="stats-value" id="isStudiedWordsCount">0</div>
+                    </div>
+                </div>
+                
+                <!-- 장기기억 카드 -->
+                <div class="stats-card" id="longTermBtn">
+                    <div class="stats-icon longterm-icon">
+                        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M13 3C9.23 3 6.19 5.95 6 9.66L4.08 12.19C3.84 12.5 4.08 13 4.5 13H6V16C6 17.11 6.89 18 8 18H9V21H16V16.31C18.37 15.19 20 12.8 20 10C20 6.14 16.88 3 13 3ZM14 14H11V17H10C9.45 17 9 16.55 9 16V12H7.16L8.43 10.39C8.78 9.94 8.97 9.39 8.98 8.82C9.07 6.62 10.86 5 13 5C15.76 5 18 7.24 18 10C18 12.19 16.29 14 14 14Z" fill="currentColor"/>
+                        </svg>
+                    </div>
+                    <div class="stats-info">
+                        <div class="stats-title">장기기억</div>
+                        <div class="stats-value" id="longTermCount">0/0</div>
+                    </div>
+                </div>
+                
+                <!-- S Memory 카드 -->
+                <div class="stats-card" id="qMemoryBtn">
+                    <div class="stats-icon smemory-icon">
+                        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M12 17.27L18.18 21L16.54 13.97L22 9.24L14.81 8.63L12 2L9.19 8.63L2 9.24L7.46 13.97L5.82 21L12 17.27Z" fill="currentColor"/>
+                        </svg>
+                    </div>
+                    <div class="stats-info">
+                        <div class="stats-title">S 메모리</div>
+                        <div class="stats-value" id="qMemoryCount">0</div>
+                    </div>
+                </div>
+                
+                <!-- 단기기억 카드 -->
+                <div class="stats-card" id="shortTermBtn">
+                    <div class="stats-icon shortterm-icon">
+                        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+							<path d="M7 2V13H10V22L17 10H13L17 2H7Z" fill="currentColor"/>
+						</svg>
+                    </div>
+                    <div class="stats-info">
+                        <div class="stats-title">단기기억</div>
+                        <div class="stats-value" id="shortTermCount">0</div>
+                    </div>
+                </div>
+                
+                <!-- 암기중 카드 -->
+                <div class="stats-card" id="memorizingBtn">
+                    <div class="stats-icon memorizing-icon">
+                        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M5 13.18V17.18L12 21L19 17.18V13.18L12 17L5 13.18ZM12 3L1 9L12 15L21 10.09V17H23V9L12 3Z" fill="currentColor"/>
+                        </svg>
+                    </div>
+                    <div class="stats-info">
+                        <div class="stats-title">암기중</div>
+                        <div class="stats-value" id="memorizingCount">0</div>
+                    </div>
+                </div>
+                
+                <!-- 고난도 카드 -->
+                <div class="stats-card" id="difficultBtn">
+                    <div class="stats-icon difficult-icon">
+                        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M12 2C6.48 2 2 6.48 2 12C2 17.52 6.48 22 12 22C17.52 22 22 17.52 22 12C22 6.48 17.52 2 12 2ZM13 17H11V15H13V17ZM13 13H11V7H13V13Z" fill="currentColor"/>
+                        </svg>
+                    </div>
+                    <div class="stats-info">
+                        <div class="stats-title">고난도</div>
+                        <div class="stats-value" id="difficultCount">0</div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 하단 푸터 -->
+            <p class="footer-text">맥락과 반복</p>
+            <!-- <div id="mainMessage" class="message-container"></div> -->
+        </div>
+
+        <!-- 학습 화면 (기존 코드와 동일) -->
+        <div id="studyScreen" class="screen">
+            <div class="study-progress-container">
+                <div class="progress-text">
+                    <span id="currentProgress">1</span>/<span id="totalWordsProgress">0</span>
+                </div>
+            </div>
+
+            <div class="card-container">
+                <div class="card-slide" id="cardSlide">
+                    <div class="card-content front">
+                        <div class="word-text" id="frontWord"></div>
+                    </div>
+                    <div class="card-content back">
+                        <div class="word-text" id="backWord"></div>
+                        <div class="meaning-text" id="meaning"></div>
+                        <div class="pronunciation-text" id="pronunciation"></div>
+                        <div class="vipup-text" id="vipup"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="button-container">
+                <div id="answerButtons" class="answer-buttons">
+                    <button class="study-btn" id="knowBtn">알아요</button>
+                    <button class="study-btn" id="dontKnowBtn">몰라요</button>
+                </div>
+                <div id="navigationButtons" class="navigation-buttons" style="display: none;">
+                    <button class="study-btn" id="stopBtn">중지</button>
+                    <button class="study-btn" id="continueBtn">계속</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Q Memory 시작 화면 -->
+        <div id="qStartScreen" class="screen">
+            <div class="qstart-container">
+                <img src="https://cdn.pixabay.com/animation/2022/12/15/23/24/23-24-28-361_512.gif" alt="Focus Image" class="focus-image" />
+                <button id="startBtn" class="choice-btn">암기 시작</button>
+            </div>
+        </div>
+
+        <!-- Q Memory 게임 화면 -->
+        <div id="qGameScreen" class="screen">
+            <div class="card" id="card">
+                <div class="card-inner">
+                    <div class="card-front">
+                        <div id="frontText"></div>
+                    </div>
+                    <div class="card-back">
+                        <div id="wordText" class="word-text"></div>
+                        <div id="backText" class="meaning-text"></div>
+                    </div>
+                </div>
+            </div>
+            <div class="button-container" style="position: absolute; bottom: 2rem; left: 0; right: 0; padding: 0 2rem;">
+                <div class="choice-buttons" id="choiceButtons" style="display: none;">
+                    <button class="choice-btn" id="choiceBtn1" data-correct="true">정답</button>
+                    <button class="choice-btn" id="choiceBtn2" data-correct="false">오답</button>
+                </div>
+                <button id="nextBtn" class="choice-btn" style="display: none;">다음</button>
+            </div>
+        </div>
+
+        <!-- 완료 화면 -->
+        <div id="completionScreen" class="screen">
+            <div class="result-container">
+                <h2 class="text-2xl font-bold mb-4">학습 완료</h2>
+                <div id="statsBox" class="stats-box">
+                    <p id="completionMessage" class="text-lg mb-4"></p>
+                </div>
+                <div class="button-group">
+                    <button id="loadMoreBtn" class="choice-btn">더 학습하기</button>
+                    <button id="toHomeBtn" class="choice-btn">홈으로</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Q Memory 결과 화면 -->
+        <div id="qResultScreen" class="screen">
+            <div class="result-container">
+                <div class="result-title">학습 완료</div>
+                
+                <div class="score-circle">
+                    <span id="scorePercentage" class="score-number">0</span>
+                    <span class="score-label">점</span>
+                </div>
+                
+                <div class="remaining-words-box">
+                    <span class="label">남은 단어</span>
+                    <span id="remainingCount" class="count">0</span>
+                    <span>개</span>
+                </div>
+                
+                <div class="button-group">
+                    <button id="studyMissedBtn" class="choice-btn">다음 단어 학습하기</button>
+                    <button id="loadNewWordsBtn" class="choice-btn" style="display: none;">새로운 단어 불러오기</button>
+                    <button id="homeBtn" class="choice-btn secondary">학습 종료하기</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 고난도 전용 화면 -->
+        <div id="difficultScreen" class="screen">
+            <button id="closeDifficultBtn">닫기</button>
+            <div id="difficultContainer">
+                <p>로딩중...</p>
+            </div>
+        </div>
+    </div>
+
+<!-- 스크립트 -->
+<script>
+// 다운로드 오버레이 관련 전역 함수들
+window.showDownloadOverlay = function(progress = 0) {
+    // DOM이 준비될 때까지 대기
+    if (document.readyState !== 'complete' && document.readyState !== 'interactive') {
+        setTimeout(() => window.showDownloadOverlay(progress), 100);
+        return;
+    }
+    
+    const overlay = document.getElementById('downloadOverlay');
+    const progressText = overlay?.querySelector('.download-progress');
+    const progressBar = overlay?.querySelector('.download-bar-fill');
+    
+    if (overlay) {
+        // 강제로 display flex 설정
+        overlay.style.cssText = `
+            position: fixed !important;
+            top: 0 !important;
+            left: 0 !important;
+            width: 100% !important;
+            height: 100% !important;
+            background: rgba(0, 0, 0, 0.7) !important;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            z-index: 999998 !important;
+            opacity: 1 !important;
+            visibility: visible !important;
+        `;
+        
+        overlay.classList.add('show');
+        
+        // container 숨기기
+        const container = document.querySelector('.container');
+        if (container) {
+            container.style.opacity = '0';
+            container.style.visibility = 'hidden';
+        }
+        
+        if (progressText) progressText.textContent = `${progress}%`;
+        if (progressBar) progressBar.style.width = `${progress}%`;
+    }
+};
+
+window.hideDownloadOverlay = function() {
+    const overlay = document.getElementById('downloadOverlay');
+    if (overlay) {
+        overlay.classList.remove('show');
+        
+        // 스타일 초기화
+        overlay.style.cssText = '';
+        
+        // container 다시 표시
+        const container = document.querySelector('.container');
+        if (container) {
+            container.style.opacity = '';
+            container.style.visibility = '';
+        }
+        
+        // 애니메이션 완료 후 진행률 초기화
+        setTimeout(() => {
+            const progressText = overlay.querySelector('.download-progress');
+            const progressBar = overlay.querySelector('.download-bar-fill');
+            if (progressText) progressText.textContent = '0%';
+            if (progressBar) progressBar.style.width = '0%';
+        }, 300);
+    }
+};
+
+window.updateDownloadProgress = function(progress) {
+    const overlay = document.getElementById('downloadOverlay');
+    if (!overlay) return;
+    
+    const progressText = overlay.querySelector('.download-progress');
+    const progressBar = overlay.querySelector('.download-bar-fill');
+    
+    if (overlay.classList.contains('show') || overlay.style.display === 'flex') {
+        if (progressText) progressText.textContent = `${Math.round(progress)}%`;
+        if (progressBar) progressBar.style.width = `${progress}%`;
+    }
+};
+// =========== 초기화는 enhanced-loader.js가 담당 ===========
+// 여기서는 상태 플래그만 설정하고 enhanced-loader가 모든 것을 처리하도록 함
+console.log('index.html: 초기화 준비 상태 설정');
+
+// 초기화 상태 플래그 설정
+if (!window._initStatus) {
+  window._initStatus = { 
+    started: false,
+    fromIndexHtml: true  // index.html이 로드되었음을 표시
+  };
+}
+
+// 디버그를 위한 로그
+console.log('index.html: enhanced-loader.js의 초기화를 기다립니다...');
+// 앱 상태 확인 함수 (전역)
+window.checkAppReady = function() {
+    return {
+        contentSystemLoaded: typeof window.ContentBasedDBManager === 'function',
+        initializerReady: window.contentAppInitializer?.initialized || false,
+        appReady: window.app?.initialized || false,
+        currentContent: window.app?.currentContent || null,
+        hasInitializeMethod: typeof window.app?.initialize === 'function',
+        enhancedLoaderReady: typeof window.startAppInitialization === 'function'
+    };
+};
+
+// 콘텐츠 전환 함수 (전역)
+window.switchToContent = function(contentId) {
+    if (window.switchContent) {
+        return window.switchContent(contentId);
+    }
+    console.error('콘텐츠 전환 함수를 찾을 수 없습니다');
+    return Promise.resolve(false);
+};
+
+// 개발자 도구용 함수들
+window.debugContent = function() {
+    console.log('=== 콘텐츠 디버그 정보 ===');
+    console.log('현재 URL:', window.location.href);
+    console.log('앱 상태:', window.checkAppReady());
+    
+    if (window.app) {
+        console.log('DB 이름:', window.app.dbManager?.DB_NAME);
+        console.log('현재 콘텐츠:', window.app.currentContent);
+        console.log('Initialize 메서드:', typeof window.app.initialize);
+        console.log('StartMode 메서드:', typeof window.app.startMode);
+        console.log('UpdateWordCounts 메서드:', typeof window.app.updateWordCounts);
+    }
+    
+    console.log('로컬 스토리지 콘텐츠:', localStorage.getItem('current_content'));
+    console.log('=======================');
+};
+
+// 안전장치 - enhanced-loader.js가 로드되지 않은 경우를 위한 폴백
+window.addEventListener('load', function() {
+    // 페이지 완전 로드 후 5초 뒤에도 초기화가 안 되었으면 경고
+    setTimeout(function() {
+        if (window._initStatus && !window._initStatus.started && !window.app?.initialized) {
+            console.warn('앱 초기화가 지연되고 있습니다. enhanced-loader.js 상태를 확인하세요.');
+            
+            const mainMessage = document.getElementById('mainMessage');
+            if (mainMessage) {
+                mainMessage.innerHTML = `
+                    <div style="color: #F59E0B; text-align: center; padding: 20px;">
+                        <div>앱 초기화가 지연되고 있습니다...</div>
+                        <div style="font-size: 0.9em; margin-top: 10px;">
+                            페이지를 새로고침하거나 잠시 후 다시 시도해주세요.
+                        </div>
+                        <button onclick="window.location.reload()" 
+                                style="margin-top: 10px; padding: 8px 16px; background: #4F46E5; color: white; border: none; border-radius: 4px; cursor: pointer;">
+                            새로고침
+                        </button>
+                    </div>
+                `;
+                mainMessage.style.display = 'block';
+                mainMessage.className = 'message-container show';
+            }
+        }
+    }, 5000);
+});
+</script>
+<script>
+// 기본 Q Memory 기능을 가진 베이스 클래스
+class BaseQMemoryMode {
+    constructor() {
+        this.words = [];
+        this.meanings = [];
+        this.get_ids = [];
+        this.currentIndex = 0;
+        this.userPhone = null;
+        this.flipTimer = null;
+        this.pendingUpdates = [];
+        this.isLoading = false;
+        this.difficulties = [];
+        this.knownCount = 0;
+        this.unknownCount = 0;
+        this.totalWords = 0;
+    }
+
+    async initialize(phoneNumber) {
+		if (!phoneNumber) throw new Error('Phone number is required');
+		
+		this.userPhone = phoneNumber.toString().replace(/[^0-9]/g, '');
+		console.log('BaseQMemoryMode initialize:', {
+			phoneNumber: this.userPhone
+		});
+		
+		const words = await this.loadWords();
+		console.log('Loaded words:', words);
+		if (words.length) {
+		  // 저장 대신 로그만 출력
+		  console.log(`${words.length}개 단어를 로드했습니다.`);	
+			
+		  // IndexedDB에 저장해 줍니다
+		  //await app.dbManager.saveWords(words.map(item => ({
+		  //  _id:        item._id,
+		  //  known_2:    item.known_2,
+		  //  status:     item.status,
+		  //  difficult:  Number(item.difficult),  // 숫자로 변환하여 저장
+		  //  studiedDate:item.updatedAt  // API 로부터 받은 업데이트 시각
+		  //})));
+		}
+		 
+		if (!words?.length) return false;
+		
+		this.totalWords = words.length;  // 총 단어 수 저장
+		this.knownCount = 0;  // 초기화
+		this.unknownCount = 0;  // 초기화
+		
+		this.words = words.map(item => item.word);
+		this.meanings = words.map(item => item.meaning);
+		this.get_ids = words.map(item => ({ _id: item._id }));
+		this.difficulties = words.map(item => Number(item.difficult) || 0);  // 숫자로 변환
+		
+		this.currentIndex = 0;
+		return true;
+	}
+
+    async loadWords() {
+        if (this.isLoading) return [];
+        
+        this.isLoading = true;
+        try {
+            const queryParams = this.getQueryParams();
+            console.log('Loading words with query:', queryParams);
+            
+            // IndexedDB에서 데이터 로드
+            const filter = this.convertQueryToFilter(queryParams);
+            
+            // 디버그 로그 추가
+            console.log('변환된 필터 객체:', JSON.stringify(filter));
+            
+            // studiedDate 기준 정렬로 수정 (오래된 단어부터)
+            const words = await app.dbManager.getWords(filter, 10, { 
+                field: 'studiedDate', 
+                direction: 'asc' 
+            });
+            
+            // 로드된 단어 전처리 - meaning 필드가 문자열이 아닌 경우 문자열로 변환
+            const processedWords = words.map(word => {
+                if (word.meaning && typeof word.meaning !== 'string') {
+                    // 객체나 배열이면 문자열로 변환
+                    word.meaning = String(word.meaning);
+                }
+                
+                // difficult 필드는 숫자로 보장
+                if (word.difficult !== undefined) {
+                    word.difficult = Number(word.difficult);
+                }
+                
+                return word;
+            });
+            
+            console.log(`로드된 단어 수: ${processedWords.length}, 첫 번째 단어:`, 
+                       processedWords.length > 0 ? processedWords[0].word : '없음');
+            
+            return processedWords;
+        } catch (error) {
+            console.error('Words loading error:', error);
+            return [];
+        } finally {
+            this.isLoading = false;
+        }
+    }
+
+    convertQueryToFilter(queryParams) {
+	  // 쿼리 파라미터를 IndexedDB 필터로 변환
+	  const filter = {};
+	  
+	  console.log('원본 쿼리 문자열:', queryParams);
+	  
+	  queryParams.split('&').forEach(param => {
+		const [key, value] = param.split('=');
+		if (key && value) {
+		  // 따옴표 제거 및 타입 변환
+		  let processedValue = value;
+		  
+		  // 따옴표로 둘러싸인 문자열 처리 (예: "0" → 0)
+		  if (value.startsWith('"') && value.endsWith('"')) {
+			// 따옴표 제거 (첫 번째와 마지막 문자 제거)
+			processedValue = value.substring(1, value.length - 1);
+		  }
+		  
+		  // 타입 변환
+		  if (processedValue === 'true') {
+			filter[key] = true;
+		  } else if (processedValue === 'false') {
+			filter[key] = false;
+		  } else if (key === 'known_2' || key === 'status' || key === 'isStudied') {
+			// 이 필드들은 문자열로 유지 (isStudied를 여기에 포함)
+			filter[key] = String(processedValue);
+          } else if (key === 'difficult') {
+			// difficult 필드는 숫자형으로 항상 유지
+			if (processedValue.startsWith('{')) {
+			  // $gt 등의 쿼리 연산자 처리
+			  try {
+				const operator = JSON.parse(processedValue);
+				const numericOperator = {};
+				for (const op in operator) {
+				  numericOperator[op] = Number(operator[op]);
+				}
+				filter[key] = numericOperator;
+			  } catch (error) {
+				console.error('복합 쿼리 파싱 오류:', error);
+				filter[key] = 0; // 기본값 설정
+			  }
+			} else {
+			  filter[key] = Number(processedValue);
+			}
+		  } else if (!isNaN(Number(processedValue))) {
+			// 다른 숫자 필드는 숫자형으로 변환
+			filter[key] = Number(processedValue);
+		  } else {
+			filter[key] = processedValue;
+		  }
+		}
+	  });
+	  
+	  console.log('변환된 필터:', filter);
+	  return filter;
+	}
+
+    async updateWordStatus(wordId, isCorrect) {
+	  if (!wordId) return false;
+
+	  try {
+		// 점수 카운트 업데이트
+		if (isCorrect) {
+		  this.knownCount++;
+		} else {
+		  this.unknownCount++;
+		}
+		
+		const currentDifficulty = this.difficulties[this.currentIndex] || 0;
+		const newDifficulty = isCorrect ? Math.max(currentDifficulty - 1, 0) : currentDifficulty + 1;
+		
+		// getSuccessStatus에서 상태 정보 가져오기
+		const statusChange = this.getSuccessStatus(isCorrect);
+		
+		// 한국 시간 사용하여 날짜 설정
+		const koreanTimeNow = window.KoreanTimeUtil ? 
+							  window.KoreanTimeUtil.getKoreanTimeISOString() : 
+							  new Date().toISOString();
+		
+		// 항상 문자열/숫자 타입으로 변환하여 일관성 유지
+		const status = {
+		  known_2: String(statusChange.known_2),
+		  status: String(statusChange.status),
+		  difficult: Number(newDifficulty),
+		  studiedDate: koreanTimeNow,  // 한국 시간 사용
+		  updatedAt: koreanTimeNow,
+          isStudied: "1" // 변경: true → "1"로 수정
+		};
+		
+		// 디버그 로그 추가
+		console.log(`단어 상태 업데이트 (${wordId}): isCorrect=${isCorrect}, 새 상태=`, status);
+		
+		// IndexedDB 업데이트
+		await app.dbManager.updateWord(wordId, status);
+
+		return true;
+	  } catch (error) {
+		console.error('Error updating word status:', error);
+		return false;
+	  }
+	}
+
+    // 점수 계산을 위한 메서드 추가
+    getScore() {
+        const totalCount = this.knownCount + this.unknownCount;
+        if (totalCount === 0) return 0;
+        return Math.round((this.knownCount / totalCount) * 100);
+    }
+
+    getQueryParams() {
+        throw new Error('getQueryParams must be implemented by subclass');
+    }
+
+    getSuccessStatus(isCorrect) {
+        throw new Error('getSuccessStatus must be implemented by subclass');
+    }
+
+    getCurrentWord() {
+        if (!Array.isArray(this.words) || 
+            this.currentIndex < 0 || 
+            this.currentIndex >= this.words.length) {
+            return null;
+        }
+
+        return {
+            word: this.words[this.currentIndex],
+            meaning: this.meanings[this.currentIndex],
+            _id: this.get_ids[this.currentIndex]._id,
+            difficult: this.difficulties[this.currentIndex]
+        };
+    }
+
+    hasNextWord() {
+        return this.currentIndex < this.words.length - 1;
+    }
+
+    moveToNextWord() {
+        if (this.hasNextWord()) {
+            this.currentIndex++;
+            return true;
+        }
+        return false;
+    }
+
+    startFlipTimer(callback) {
+        // 기존 타이머 명확하게 제거
+        this.clearFlipTimer();
+        
+        // 안전 지연시간 추가 (DOM 렌더링 시간 확보)
+        setTimeout(() => {
+            // 타이머가 이미 취소되었는지 확인 (화면 전환 등으로)
+            if (this.isDestroyed) return;
+            
+            // 실제 타이머 시작 (type에 따라 2초 또는 4초)
+            const timerDuration = this.timerDuration || 2000; // 기본값 2초
+            console.log(`Starting flip timer with duration: ${timerDuration}ms`);
+            this.flipTimer = setTimeout(() => {
+                // 콜백 실행 전 다시 한번 확인
+                if (!this.isDestroyed && this.flipTimer) {
+                    callback();
+                }
+            }, timerDuration);
+        }, 100); // 100ms 지연으로 DOM 렌더링 보장
+    }
+
+    clearFlipTimer() {
+        if (this.flipTimer) {
+            console.log('Clearing flip timer');
+            clearTimeout(this.flipTimer);
+            this.flipTimer = null;
+        }
+    }
+    
+    // 리소스 정리 메서드 추가
+    destroy() {
+        this.isDestroyed = true;
+        this.clearFlipTimer();
+    }
+}
+
+// QMemoryMode 클래스 - 상속하여 구체적인 동작 구현
+class QMemoryMode extends BaseQMemoryMode {
+    getQueryParams() {
+	  // 변경: isStudied=true → isStudied="1"
+	  return 'isStudied="1"&known_2="0"&status="0"';
+	}
+
+    getSuccessStatus(isCorrect) {
+       if (isCorrect) {
+			// 정답일 경우: known_2는 "0"으로 유지하고 status를 "1"로 변경
+			return {
+				known_2: "0",  // 암기중 상태 유지
+				status: "1"    // 상태를 1로 변경하여 S MEMORY에서 필터링되도록 함
+			};
+		} else {
+			// 오답일 경우: known_2와 status 모두 "0"으로 유지
+			return {
+				known_2: "0",  // 암기중 유지
+				status: "0"    // 상태 유지하여 계속 S MEMORY에 표시되도록 함
+			};
+		}
+    }
+    async initialize(phoneNumber) {
+        this.knownCount = 0;
+        this.unknownCount = 0;
+        return await super.initialize(phoneNumber);
+    }
+}
+
+// ShortTermQMemoryMode 클래스
+class ShortTermQMemoryMode extends BaseQMemoryMode {
+    getQueryParams() {
+	  // 변경: isStudied=true → isStudied="1"
+	  return 'isStudied="1"&known_2="1"';
+	}
+
+    getSuccessStatus(isCorrect) {
+		if (isCorrect) {
+			// 성공 시 장기기억으로
+			return {
+				known_2: "2",  // 장기기억으로
+				status: "0"    // 상태 초기화
+			};
+		} else {
+			// 실패 시 암기중으로, status를 0으로 해야 S MEMORY에 포함됨
+			return {
+				known_2: "0",  // 암기중으로
+				status: "0"    // 상태를 0으로 설정 (S MEMORY에서 볼 수 있도록)
+			};
+		}
+	}
+    
+    async initialize(phoneNumber) {
+        this.knownCount = 0;
+        this.unknownCount = 0;
+        return await super.initialize(phoneNumber);
+    }
+}
+
+// LongTermQMemoryMode 클래스
+class LongTermQMemoryMode extends BaseQMemoryMode {
+    constructor() {
+        super();
+        this.isLoading = false;
+        this.words = [];
+        this.meanings = [];
+        this.get_ids = [];
+        this.difficulties = [];
+        this.currentIndex = 0;
+        this.knownCount = 0;
+        this.unknownCount = 0;
+    }
+
+    async initialize(phoneNumber) {
+        if (!phoneNumber) throw new Error('Phone number is required');
+        
+        // 카운터 초기화
+        this.knownCount = 0;
+        this.unknownCount = 0;
+        
+        this.userPhone = phoneNumber.toString().replace(/[^0-9]/g, '');
+        console.log('[LongTerm Initialize] Phone:', this.userPhone);
+        
+        const words = await this.loadWords();
+        console.log('[LongTerm Words]', {
+            count: words?.length,
+            first: words?.[0]?.updatedAt,
+            last: words?.[words?.length - 1]?.updatedAt
+        });
+        
+        if (!words?.length) return false;
+        
+        this.words = words.map(item => item.word);
+        this.meanings = words.map(item => item.meaning);
+        this.get_ids = words.map(item => ({ _id: item._id }));
+        this.difficulties = words.map(item => Number(item.difficult) || 0);  // 숫자로 명시적 변환
+        
+        this.currentIndex = 0;
+        return true;
+    }
+
+    async loadWords() {
+        if (this.isLoading) return [];
+        
+        this.isLoading = true;
+        try {
+            // 한국 시간 기준으로 오늘 날짜 가져오기
+			const oneDayAgoTime = window.KoreanTimeUtil ? 
+								  window.KoreanTimeUtil.getTodayISOString() : 
+								  getTodayISOString();
+			
+			console.log('[LongTerm] 오늘 날짜 기준시간:', oneDayAgoTime);
+			
+			// IndexedDB에서 데이터 로드 - 변경: isStudied: true → isStudied: "1"
+			const filter = { 
+				isStudied: "1",
+				known_2: "2",
+				studiedDate: { $lt: oneDayAgoTime }
+			};
+            
+            console.log('[LongTerm] 필터:', JSON.stringify(filter));
+        
+			// studiedDate 기준 오름차순 정렬
+			const words = await app.dbManager.getWords(filter, 10, { 
+				field: 'studiedDate', 
+				direction: 'asc' 
+			});
+			
+			console.log(`[LongTerm] 로드된 단어 수: ${words.length}`);
+			if (words.length > 0) {
+				console.log('[LongTerm] 첫 단어 정보:', {
+					word: words[0].word,
+					studiedDate: words[0].studiedDate,
+					dateTime: new Date(words[0].studiedDate).toLocaleString()
+				});
+			}
+			
+			// difficult 필드가 숫자형인지 확인 및 변환
+			return words.map(word => {
+				if (word.difficult !== undefined) {
+					word.difficult = Number(word.difficult);
+				}
+				return word;
+			});
+		} catch (error) {
+			console.error('[LongTermQMemoryMode] 단어 로드 오류:', error);
+			return [];
+		} finally {
+			this.isLoading = false;
+		}
+	}
+
+    getSuccessStatus(isCorrect) {
+		if (isCorrect) {
+			// 성공 시 장기기억 유지
+			return {
+				known_2: "2",  // 장기기억 유지
+				status: "0"    // 상태 초기화
+			};
+		} else {
+			// 실패 시 암기중으로, status를 0으로 해야 S MEMORY에 포함됨
+			return {
+				known_2: "0",  // 암기중으로
+				status: "0"    // 상태를 0으로 설정 (S MEMORY에서 볼 수 있도록)
+			};
+		}
+	}
+
+    getQueryParams() {
+	  return 'known_2=2';
+	}
+}
+// MemorizingMode 클래스 - 개선된 버전 (VipUp 캐싱 시스템 지원)
+// MemorizingMode 클래스 - 완전히 수정된 버전 (IndexedDB 사용)
+class MemorizingMode {
+    constructor() {
+        this.words = [];
+        this.meanings = [];
+        this.pronunciations = [];
+        this.get_ids = [];
+        this.currentIndex = 0;
+        this.pendingUpdates = [];
+        this.isLoading = false;
+        this.studiedWords = new Set(); // 학습한 단어 추적용 Set
+        this.preloadedData = null;
+        
+        // 단어 난이도(difficult)를 저장할 배열 초기화
+        this.difficulties = [];
+        this.airtableIds = []; // 에어테이블 ID 배열 추가
+        
+        // 통계 초기화
+        this.resetStats();
+    }
+
+    // 데이터 초기화
+    resetData() {
+        this.words = [];
+        this.meanings = [];
+        this.pronunciations = [];
+        this.get_ids = [];
+        this.airtableIds = [];
+        this.currentIndex = 0;
+        this.pendingUpdates = [];
+        this.isLoading = false;
+        this.preloadedData = null;
+        this.studiedWords.clear(); // 학습한 단어 추적용 Set 초기화
+        this.resetStats();
+        
+        // 단어 난이도(difficult)를 저장할 배열 초기화
+        this.difficulties = [];
+    }
+
+    // 통계 초기화
+    resetStats() {
+        this.knownCount = 0;
+        this.unknownCount = 0;
+        this.wordsStudied = 0;
+    }
+
+
+    // MemorizingMode 클래스의 initialize 메서드 - IndexedDB 사용 버전
+    async initialize(phoneNumber) {
+        if (this.isLoading) return false;
+        this.isLoading = true;
+        
+        try {
+            // 대기 중인 업데이트가 있으면 처리
+            if (this.pendingUpdates.length > 0) {
+                await this.processPendingUpdates();
+            }
+
+            // 상태 리셋
+            this.resetStats();
+            this.resetData();
+            
+            // IndexedDB에서 전체 암기중 단어 수 가져오기
+            this.totalCount = await app.dbManager.getWordCount({ 
+                isStudied: "1", 
+                known_2: "0" 
+            });
+            
+            console.log('암기중 전체 단어 수:', this.totalCount);
+            
+            if (this.totalCount === 0) {
+                console.log('암기중인 단어가 없습니다.');
+                return false;
+            }
+
+            // 단어 가져오기 - 미리 로드된 데이터가 있으면 사용
+            let words;
+            if (this.preloadedData && this.preloadedData.data) {
+                console.log('미리 로드된 데이터 사용');
+                words = this.preloadedData.data;
+                this.preloadedData = null; // 사용 후 초기화
+            } else {
+                // IndexedDB에서 단어 가져오기
+                console.log('IndexedDB에서 데이터 로드');
+                words = await app.dbManager.getWords(
+                    { isStudied: "1", known_2: "0" }, 
+                    10, 
+                    { field: 'updatedAt', direction: 'asc' }
+                );
+            }
+            
+            console.log(`가져온 암기중 단어 수: ${words.length}`);
+            
+            if (words.length === 0) {
+                console.log('가져올 수 있는 단어가 없습니다.');
+                return false;
+            }
+
+            // 필드 타입 확인 및 처리
+            const processedWords = words.map(word => {
+                // difficult 필드 숫자형 보장
+                if (word.difficult !== undefined) {
+                    word.difficult = Number(word.difficult);
+                }
+                
+                // meaning 필드 문자열 보장
+                if (word.meaning && typeof word.meaning !== 'string') {
+                    word.meaning = String(word.meaning);
+                }
+                
+                return word;
+            });
+            
+            // 단어 데이터 설정
+            this.currentIndex = 0;
+            this.get_ids = processedWords;
+            this.words = processedWords.map(item => item.word);
+            this.meanings = processedWords.map(item => item.meaning);
+            this.pronunciations = processedWords.map(item => item.pronunciation || "");
+            this.airtableIds = processedWords.map(item => item.airtableId || null);
+            this.difficulties = processedWords.map(item => Number(item.difficult) || 0);
+            
+            // 로깅 추가 - 디버깅용
+            if (this.words.length > 0) {
+                console.log('첫 번째 단어 정보:', {
+                    word: this.words[0],
+                    meaning: this.meanings[0],
+                    id: this.get_ids[0]._id,
+                    known_2: this.get_ids[0].known_2,
+                    isStudied: this.get_ids[0].isStudied
+                });
+            }
+
+            return true;
+        } catch (error) {
+            console.error('MemorizingMode 초기화 오류:', error);
+            return false;
+        } finally {
+            this.isLoading = false;
+        }
+    }
+
+    // pending updates 처리를 위한 보조 메서드
+    async processPendingUpdates() {
+        while (this.pendingUpdates.length > 0) {
+            const update = this.pendingUpdates[0];
+            try {
+                await app.dbManager.updateWord(update.wordId, update.status);
+                
+                // 업데이트 성공 시 큐에서 제거
+                this.pendingUpdates.shift();
+            } catch (error) {
+                console.error('Update processing error:', error);
+                // 5번까지 재시도 후 실패하면 해당 업데이트 제거
+                if (update.retryCount && update.retryCount >= 5) {
+                    this.pendingUpdates.shift();
+                } else {
+                    // 재시도 카운트 증가
+                    update.retryCount = (update.retryCount || 0) + 1;
+                    // 다음 업데이트로 넘어가고 실패한 것은 큐의 끝으로 이동
+                    this.pendingUpdates.push(this.pendingUpdates.shift());
+                    // 잠시 대기 후 다음 시도
+                    await new Promise(resolve => setTimeout(resolve, 1000));
+                }
+            }
+        }
+    }
+    
+    // 통계 반환 메서드
+    getStats() {
+        return {
+            knownCount: this.knownCount,
+            unknownCount: this.unknownCount,
+            wordsStudied: this.wordsStudied,
+            totalWords: this.studiedWords.size
+        };
+    }
+
+    // 사용자 응답 처리
+    async handleAnswer(phoneNumber, isKnown) {
+        const currentWord = this.getCurrentWord();
+        if (!currentWord) return false;
+
+        try {
+            if (!this.studiedWords.has(currentWord._id)) {
+                if (isKnown) {
+                    this.knownCount++;
+                } else {
+                    this.unknownCount++;
+                }
+                this.wordsStudied++;
+                this.studiedWords.add(currentWord._id);
+            }
+
+            // 백그라운드에서 업데이트 처리
+            this.updateWordStatus(currentWord._id, isKnown).catch(error => {
+                console.error('Word status update error:', error);
+            });
+
+            return true; // 즉시 true 반환
+        } catch (error) {
+            console.error('단어 상태 업데이트 오류:', error);
+            return false;
+        }
+    }
+    // updateWordStatus 메서드 - IndexedDB 사용 버전
+    async updateWordStatus(wordId, isKnown) {
+        if (!wordId) return false;
+        
+        try {
+            // 현재 단어의 난이도 (difficulties 배열에서 가져옴)
+            const currentDifficulty = (this.difficulties && this.difficulties[this.currentIndex] !== undefined)
+                ? this.difficulties[this.currentIndex]
+                : 0;
+                
+            // 알고 있는지 여부에 따라 난이도 조정
+            const newDifficulty = isKnown ? Math.max(currentDifficulty - 1, 0) : currentDifficulty + 1;
+            
+            // 한국 시간 ISO 문자열 생성
+            const koreanTimeNow = window.KoreanTimeUtil ? 
+                window.KoreanTimeUtil.getKoreanTimeISOString() : 
+                new Date().toISOString();
+            
+            // IndexedDB 업데이트 데이터
+            const updateData = {
+                known_2: isKnown ? "1" : "0",  // 문자열로 설정
+                status: "0",                   // 문자열로 설정
+                difficult: Number(newDifficulty), // 숫자형으로 변환
+                updatedAt: koreanTimeNow,
+                studiedDate: koreanTimeNow
+            };
+            
+            console.log(`단어 상태 업데이트 (${wordId}): isKnown=${isKnown}, 새 상태=`, updateData);
+            
+            // 대기열에 업데이트 추가
+            this.pendingUpdates.push({
+                wordId,
+                status: updateData
+            });
+            
+            // 즉시 처리 시작
+            this.processUpdates();
+            
+            // 로컬 난이도 정보도 업데이트
+            if (this.difficulties && this.currentIndex < this.difficulties.length) {
+                this.difficulties[this.currentIndex] = newDifficulty;
+            }
+            
+            return true;
+        } catch (error) {
+            console.error('Word status update error:', error);
+            return false;
+        }
+    }
+
+    // hasNextWord 메서드
+    hasNextWord() {
+        return this.currentIndex < this.words.length - 1;
+    }
+
+    // moveToNextWord 메서드
+    moveToNextWord() {
+        if (this.hasNextWord()) {
+            this.currentIndex++;
+            console.log(`다음 단어로 이동: ${this.currentIndex + 1}/${this.words.length}`);
+            return true;
+        }
+        return false;
+    }
+    
+    // processUpdates 메서드 - IndexedDB 사용 버전
+    async processUpdates() {
+        if (this.pendingUpdates.length === 0) return;
+    
+        const update = this.pendingUpdates[0];
+        try {
+            // IndexedDB 직접 업데이트
+            await app.dbManager.updateWord(update.wordId, update.status);
+            
+            // 성공 시 큐에서 제거
+            this.pendingUpdates.shift();
+            
+            // 남은 업데이트가 있으면 계속 처리
+            if (this.pendingUpdates.length > 0) {
+                setTimeout(() => this.processUpdates(), 100);
+            }
+        } catch (error) {
+            console.error('Update processing error:', error);
+            
+            // 재시도 로직
+            if (update.retryCount && update.retryCount >= 5) {
+                this.pendingUpdates.shift();
+            } else {
+                update.retryCount = (update.retryCount || 0) + 1;
+                this.pendingUpdates.push(this.pendingUpdates.shift());
+                setTimeout(() => this.processUpdates(), 1000);
+            }
+        }
+    }
+
+		// getCurrentWord 메서드 수정
+		getCurrentWord() {
+		  // 단어 데이터 배열 검증
+		  if (!this.words || !Array.isArray(this.words) || this.words.length === 0) {
+			console.error('단어 데이터가 없습니다');
+			return null;
+		  }
+		  
+		  if (this.currentIndex < 0 || this.currentIndex >= this.words.length) {
+			console.error('잘못된 단어 인덱스:', this.currentIndex);
+			return null;
+		  }
+		  
+		  // 단어 정보를 구성
+		  const wordInfo = {
+			word: this.words[this.currentIndex],
+			meaning: (this.meanings && this.meanings[this.currentIndex]) ? this.meanings[this.currentIndex] : '',
+			pronunciation: (this.pronunciations && this.pronunciations[this.currentIndex]) ? this.pronunciations[this.currentIndex] : '',
+			_id: this.get_ids[this.currentIndex]?._id || null,
+			vipup: null // 초기값을 null로 설정
+		  };
+		  
+		  // vipup 복호화 처리
+		  const encryptedVipup = (this.get_ids[this.currentIndex] && this.get_ids[this.currentIndex].vipup) || null;
+
+		  if (encryptedVipup) {
+			// 먼저 JSON 배열 형태 ["..."] 처리
+			let processedVipup = encryptedVipup;
+			
+			// JSON 배열인지 확인하고 파싱
+			if (typeof processedVipup === 'string' && processedVipup.startsWith('["') && processedVipup.endsWith('"]')) {
+			  try {
+				const parsed = JSON.parse(processedVipup);
+				if (Array.isArray(parsed) && parsed.length > 0) {
+				  processedVipup = parsed[0];
+				  console.log('VipUp JSON 배열 파싱 성공');
+				}
+			  } catch (parseError) {
+				console.warn('VipUp JSON 파싱 실패:', parseError);
+			  }
+			}
+			
+			// 이제 암호화 확인 및 복호화
+			if (window.VipUpEncryption) {
+			  try {
+				// 암호화된 값인지 확인
+				if (window.VipUpEncryption.isEncrypted && window.VipUpEncryption.isEncrypted(processedVipup)) {
+				  // 암호화된 경우 복호화
+				  wordInfo.vipup = window.VipUpEncryption.decrypt(processedVipup);
+				  console.log('VipUp 복호화 성공');
+				} else {
+				  // 암호화되지 않은 경우 그대로 사용
+				  wordInfo.vipup = processedVipup;
+				  console.log('VipUp이 암호화되지 않은 상태');
+				}
+			  } catch (error) {
+				console.error('VipUp 복호화 오류:', error);
+				wordInfo.vipup = processedVipup; // 오류 시 처리된 값 그대로 사용
+			  }
+			} else {
+			  // VipUpEncryption이 없으면 처리된 값 그대로 사용
+			  wordInfo.vipup = processedVipup;
+			}
+		  }
+
+		  return wordInfo;
+		}
+}
+/**
+ * 최적화된 NewWordsMode 클래스
+ * 신규 단어 학습을 처리하며 IndexedDB만 사용하고 서버 의존성 제거
+ */
+class NewWordsMode {
+    constructor() {
+        this.words = [];
+        this.meanings = [];
+        this.pronunciations = [];
+        this.numbers = [];
+        this.airtableIds = [];
+        this.currentIndex = 0;
+        this.knownCount = 0;
+        this.unknownCount = 0;
+        this.wordsStudied = 0; // 이 속성이 제대로 업데이트되고 있는지 확인
+        this.totalWords = 0;
+        this.studiedWords = 0;
+        this.lastProcessedNo = 0;
+        this.isDestroyed = false;
+        this._originalWordsLength = 0;
+    }
+
+    /**
+     * 상태 초기화
+     */
+    // resetStats 메서드 수정 - NewWordsMode 클래스
+    resetStats() {
+        console.log('[resetStats] 통계 초기화');
+        
+        // 명시적으로 모든 카운터를 0으로 설정
+        this.knownCount = 0;
+        this.unknownCount = 0;
+        this.wordsStudied = 0;
+        
+        // 중복 처리 방지용 Set 초기화
+        if (this.studiedWordsSet) {
+            this.studiedWordsSet.clear();
+        } else {
+            this.studiedWordsSet = new Set();
+        }
+        
+        // 로컬 스토리지 학습 상태도 모두 제거
+        localStorage.removeItem('current_learning_state');
+        localStorage.removeItem('last_learning_stats');
+        
+        // 카운터 초기화 확인 로그
+        console.log(`[resetStats] 카운터 초기화 완료: 알아요=${this.knownCount}, 몰라요=${this.unknownCount}, 총학습=${this.wordsStudied}`);
+    }
+
+    // 수정된 initialize 메서드
+    async initialize(phoneNumber) {
+      console.log('[NewWordsMode.initialize] 시작 --------------------------------');
+      
+      // 이전 세션 상태 초기화 (새로운 학습 세션을 위해)
+      localStorage.removeItem('current_learning_state');
+      this.isDestroyed = false;
+      
+      try {
+        // 중요: 모든 카운터를 0으로 초기화
+        this.knownCount = 0;
+        this.unknownCount = 0;
+        this.wordsStudied = 0;
+        this.totalWords = 0;
+        this.studiedWords = 0;
+        this.lastProcessedNo = 0;
+        
+        // 중복 처리 방지를 위한 Set 초기화
+        this.studiedWordsSet = new Set();
+        
+        // resetStats 호출
+        this.resetStats();
+        
+        // 전체 단어 수 확인
+        this.totalWords = await app.dbManager.getWordCount({});
+        
+        // 학습한 단어 수 확인 - 변경: isStudied: true → isStudied: "1"
+        this.studiedWords = await app.dbManager.getWordCount({ isStudied: "1" });
+        
+        // 남은 단어 수 계산
+        const remainingWords = this.totalWords - this.studiedWords;
+        console.log(`[NewWordsMode.initialize] 전체 단어: ${this.totalWords}, 학습한 단어: ${this.studiedWords}, 남은 단어: ${remainingWords}`);
+        
+        // No 순서로 정렬된 미학습(isStudied="0") 단어 가져오기 - 변경: isStudied: false → isStudied: "0"
+        console.log('[NewWordsMode.initialize] No 순서로 미학습 단어 가져오기');
+        let words = await app.dbManager.getWords(
+          { isStudied: "0" }, 
+          20, 
+          { field: 'No', direction: 'asc' }
+        );
+        
+        console.log(`[NewWordsMode.initialize] 가져온 단어 수: ${words.length}`);
+        
+        if (words.length === 0) {
+          console.log('[NewWordsMode.initialize] 모든 단어를 학습했습니다');
+          return false;
+        }
+
+        // 몇 번째 단어부터 시작하는지 로그
+        const startNo = words[0].No || 'unknown';
+        console.log(`[NewWordsMode.initialize] ${startNo}번 단어부터 시작합니다`);
+
+        // difficult 필드가 숫자형인지 확인 및 변환
+        words = words.map(word => {
+            if (word.difficult !== undefined) {
+                word.difficult = Number(word.difficult);
+            }
+            return word;
+        });
+
+        // 단어 데이터 설정
+        this.words = words.map(record => record.word);
+        this.meanings = words.map(record => record.meaning);
+        this.pronunciations = words.map(record => record.pronunciation || "");
+        this.airtableIds = words.map(record => record.airtableId);
+        this.numbers = words.map(record => record.No);
+        this.get_ids = words;
+        
+        // 항상 첫 번째 단어부터 시작
+        this.currentIndex = 0;
+        this._originalWordsLength = this.words.length;
+        
+        // 카운터 초기화 확인 로그
+        console.log(`[NewWordsMode.initialize] 카운터 초기화 상태 확인: 알아요=${this.knownCount}, 몰라요=${this.unknownCount}, 총학습=${this.wordsStudied}`);
+
+        console.log(`[NewWordsMode.initialize] 초기화 완료 - 총 ${this.words.length}개 단어, 시작 인덱스: ${this.currentIndex}`);
+        return true;
+      } catch (error) {
+        console.error('[NewWordsMode.initialize] 오류:', error);
+        return false;
+      }
+    }
+
+    /**
+     * 사용자 응답 처리
+     * @param {string} phoneNumber - 전화번호
+     * @param {boolean} isKnown - 단어 암기 여부
+     * @returns {Promise<boolean>} 처리 성공 여부
+     */
+    // 수정된 handleAnswer 메서드
+    async handleAnswer(phoneNumber, isKnown) {
+        // 이미 정리되었는지 확인
+        if (this.isDestroyed) {
+            console.warn('[NewWordsMode.handleAnswer] 이미 정리된 모드입니다');
+            return false;
+        }
+        
+        // 디바운싱 - 이미 처리 중이면 중복 요청 무시
+        if (this._isHandlingAnswer) {
+            console.warn('[NewWordsMode.handleAnswer] 이미 처리 중입니다');
+            return false;
+        }
+        
+        this._isHandlingAnswer = true;
+        console.log('[NewWordsMode.handleAnswer] 시작 --------------------------------');
+
+        try {
+            const currentWord = this.getCurrentWord();
+            if (!currentWord) {
+                console.log('[NewWordsMode.handleAnswer] 현재 단어 없음');
+                return false;
+            }
+
+            const wordNo = currentWord.No;
+            console.log('[NewWordsMode.handleAnswer] 처리할 단어:', {
+                단어: currentWord.word,
+                번호: wordNo,
+                마지막처리번호: this.lastProcessedNo
+            });
+
+            // 데이터 검증
+            if (!currentWord.airtableId || !currentWord.word || !currentWord.meaning) {
+                console.error('[NewWordsMode.handleAnswer] 필수 단어 데이터 누락:', currentWord);
+                return false;
+            }
+
+            // 중복 처리 방지 - 이미 처리된 단어인지 확인 (studiedWordsSet 사용)
+            if (!this.studiedWordsSet) {
+                this.studiedWordsSet = new Set();
+            }
+            
+            const wordKey = `${currentWord._id}`;
+            
+            // 현재 세션에서 이미 처리한 단어라면 카운터 증가하지 않음
+            if (!this.studiedWordsSet.has(wordKey)) {
+                // 카운팅 증가
+                if (isKnown) {
+                    this.knownCount++;
+                } else {
+                    this.unknownCount++;
+                }
+                this.wordsStudied++;
+                
+                // 처리된 단어 기록
+                this.studiedWordsSet.add(wordKey);
+                
+                console.log('[NewWordsMode.handleAnswer] 카운터 업데이트:', {
+                    알아요: this.knownCount,
+                    몰라요: this.unknownCount,
+                    총학습: this.wordsStudied
+                });
+            } else {
+                console.log('[NewWordsMode.handleAnswer] 이미 처리된 단어입니다:', wordKey);
+            }
+
+            // 현재 상태 저장
+            this.saveCurrentState({
+                stats: {
+                    knownCount: this.knownCount,
+                    unknownCount: this.unknownCount,
+                    wordsStudied: this.wordsStudied
+                },
+                currentWord: currentWord,
+                timestamp: Date.now()
+            });
+
+            // 단어 저장 로직 - 난이도 처리
+            const newDifficulty = isKnown ? -1 : 1;
+            
+            // 상태 업데이트 정보 - 변경: isStudied: true → isStudied: "1"
+            const updateData = {
+              known_2: isKnown ? "1" : "0",  // 문자열 유지
+              status: "0",                   // 문자열 유지
+              difficult: Number(newDifficulty), // 숫자로 확실히 변환
+              updatedAt: window.KoreanTimeUtil ? window.KoreanTimeUtil.getKoreanTimeISOString() : new Date().toISOString(),
+              studiedDate: window.KoreanTimeUtil ? window.KoreanTimeUtil.getKoreanTimeISOString() : new Date().toISOString(),
+              isStudied: "1" // 문자열로 변경
+            };
+            
+            try {
+                // IndexedDB 직접 업데이트
+                await app.dbManager.updateWord(currentWord._id, updateData);
+                
+                // 마지막 처리 번호 업데이트
+                this.lastProcessedNo = Math.max(this.lastProcessedNo, wordNo);
+                
+                console.log('[NewWordsMode.handleAnswer] 단어 처리 완료:', {
+                    단어: currentWord.word,
+                    번호: wordNo,
+                    알고있음: isKnown,
+                    총처리단어: this.wordsStudied
+                });
+                
+                return true;
+            } catch (error) {
+                console.error('[NewWordsMode.handleAnswer] DB 업데이트 오류:', error);
+                return false;
+            }
+
+        } catch (error) {
+            console.error('[NewWordsMode.handleAnswer] 오류:', error);
+            return false;
+        } finally {
+            console.log('[NewWordsMode.handleAnswer] 완료 --------------------------------');
+            // 처리 완료 후 플래그 해제 (지연시간 추가)
+            setTimeout(() => {
+                this._isHandlingAnswer = false;
+            }, 800);
+        }
+    }
+
+    /**
+     * 현재 상태 저장 (로컬스토리지)
+     * @param {Object} state - 현재 학습 상태
+     */
+    saveCurrentState(state) {
+        try {
+            localStorage.setItem('current_learning_state', JSON.stringify({
+                ...state,
+                timestamp: Date.now()
+            }));
+        } catch (error) {
+            console.error('[saveCurrentState] 저장 오류:', error);
+        }
+    }
+
+    /**
+     * 이전 학습 상태 복구
+     * @returns {Promise<boolean>} 복구 성공 여부
+     */
+    async recoverLearningState() {
+        console.log('[recoverLearningState] 시작');
+        try {
+            const savedState = localStorage.getItem('current_learning_state');
+            if (savedState) {
+                const state = JSON.parse(savedState);
+                
+                // 1시간 이상 지난 상태는 복구하지 않음
+                const isExpired = (Date.now() - state.timestamp) > (60 * 60 * 1000);
+                if (isExpired) {
+                    console.log('[recoverLearningState] 만료된 상태, 복구하지 않음');
+                    localStorage.removeItem('current_learning_state');
+                    return false;
+                }
+                
+                this.knownCount = state.stats.knownCount;
+                this.unknownCount = state.stats.unknownCount;
+                this.wordsStudied = state.stats.wordsStudied;
+                
+                // 현재 단어 위치 찾기
+                if (state.currentWord) {
+                    const lastWordIndex = this.words.findIndex(w => w === state.currentWord.word);
+                    if (lastWordIndex !== -1) {
+                        this.currentIndex = lastWordIndex;
+                    }
+                }
+                
+                console.log('[recoverLearningState] 상태 복구 완료:', {
+                    알아요: this.knownCount,
+                    몰라요: this.unknownCount,
+                    총학습: this.wordsStudied,
+                    현재인덱스: this.currentIndex
+                });
+                return true;
+            }
+        } catch (error) {
+            console.error('[recoverLearningState] 오류:', error);
+        }
+        return false;
+    }
+
+    /**
+     * 현재 단어 가져오기
+     * @returns {Object|null} 현재 단어 정보
+     */
+    // NewWordsMode 클래스의 getCurrentWord 메서드 개선
+    getCurrentWord() {
+      // 배열 자체 검증
+      if (!Array.isArray(this.words) || this.words.length === 0) {
+        console.error('[NewWordsMode.getCurrentWord] 단어 배열이 없거나 비어 있습니다');
+        return null;
+      }
+      
+      // 인덱스 범위 검증
+      if (this.currentIndex < 0 || this.currentIndex >= this.words.length) {
+        console.error('[NewWordsMode.getCurrentWord] 유효하지 않은 인덱스:', this.currentIndex, '총 단어 수:', this.words.length);
+        return null;
+      }
+
+      try {
+        // 데이터 추출 시 안전하게 처리
+        const word = this.words[this.currentIndex];
+        const meaning = this.meanings ? this.meanings[this.currentIndex] : "";
+        const pronunciation = this.pronunciations ? this.pronunciations[this.currentIndex] : "";
+        const airtableId = this.airtableIds ? this.airtableIds[this.currentIndex] : null;
+        const No = this.numbers ? this.numbers[this.currentIndex] : null;
+        
+        // _id 확인 로직 강화
+        let _id = null;
+        if (this.get_ids && Array.isArray(this.get_ids) && this.get_ids.length > this.currentIndex) {
+          if (typeof this.get_ids[this.currentIndex] === 'object' && this.get_ids[this.currentIndex]._id) {
+            _id = this.get_ids[this.currentIndex]._id;
+          } else if (typeof this.get_ids[this.currentIndex] === 'object') {
+            _id = this.get_ids[this.currentIndex].id || null;
+          }
+        }
+
+        // 기본값이 있는 객체 반환
+        return {
+          word: word || "",
+          meaning: meaning || "",
+          pronunciation: pronunciation || "",
+          airtableId: airtableId || "",
+          No: No || 0,
+          _id: _id || ""
+        };
+      } catch (error) {
+        console.error('[NewWordsMode.getCurrentWord] 데이터 처리 오류:', error);
+        // 오류 발생 시에도 기본 객체 반환
+        return {
+          word: "",
+          meaning: "",
+          pronunciation: "",
+          airtableId: "",
+          No: 0,
+          _id: ""
+        };
+      }
+    }
+
+    /**
+     * 다음 단어 여부 확인
+     * @returns {boolean} 다음 단어 존재 여부
+     */
+    hasNextWord() {
+      // 정리 상태일 때는 항상 false 반환
+      if (this.isDestroyed) {
+        console.warn('[hasNextWord] 모드가 이미 정리됨');
+        return false;
+      }
+      
+      // 수정: '<=' 대신 '<'를 사용하여 정확한 범위 체크
+      const hasNext = this.currentIndex < this.words.length - 1;
+      console.log(`[hasNextWord] 다음 단어 존재 여부: ${hasNext}, 현재 인덱스: ${this.currentIndex}, 총 단어 수: ${this.words.length}`);
+      return hasNext;
+    }
+
+    /**
+     * 다음 단어로 이동
+     * @returns {boolean} 이동 성공 여부
+     */
+    moveToNextWord() {
+        // 정리 상태일 때는 항상 false 반환
+        if (this.isDestroyed) {
+            console.warn('[moveToNextWord] 모드가 이미 정리됨');
+            return false;
+        }
+        
+        if (this.hasNextWord()) {
+            this.currentIndex++;
+            console.log('[moveToNextWord] 다음 단어로 이동:', {
+                현재인덱스: this.currentIndex,
+                총단어수: this.words.length
+            });
+            return true;
+        }
+        
+        console.log('[moveToNextWord] 더 이상 단어가 없음');
+        return false;
+    }
+
+    /**
+     * 통계 가져오기
+     * @returns {Object} 학습 통계
+     */
+    // getStats 메서드 수정 - NewWordsMode 클래스
+    getStats() {
+        const totalStudied = this._originalWordsLength || this.words.length;
+        
+        const stats = {
+            // 현재 세션의 카운터 값 사용
+            knownCount: this.knownCount,
+            unknownCount: this.unknownCount,
+            wordsStudied: totalStudied, // 전체 단어 수 (모든 학습 완료한 단어)
+            totalWords: this.totalWords,
+            studiedWords: this.studiedWords + totalStudied, // 기존 학습 + 현재 학습
+            remainingWords: this.totalWords - (this.studiedWords + totalStudied)
+        };
+        console.log('[getStats] 현재 통계:', stats);
+        return stats;
+    }
+
+    /**
+     * 최종 결과 처리
+     * @returns {Promise<Object>} 최종 통계
+     */
+    async finalizeResults() {
+        console.log('[finalizeResults] 시작');
+        try {
+            // 다시 통계 업데이트
+            this.totalWords = await app.dbManager.getWordCount({});
+            
+            // isStudied="1"인 단어를 직접 카운트 - 변경: isStudied: true → isStudied: "1"
+            this.studiedWords = await app.dbManager.getWordCount({ isStudied: "1" });
+            
+            const totalStudied = this._originalWordsLength || this.words.length;
+            
+            const finalStats = {
+                knownCount: this.knownCount,
+                unknownCount: this.unknownCount,
+                wordsStudied: totalStudied,
+                totalWords: this.totalWords,
+                studiedWords: this.studiedWords,
+                remainingWords: this.totalWords - this.studiedWords,
+                timestamp: Date.now()
+            };
+            
+            sessionStorage.setItem('last_learning_stats', JSON.stringify(finalStats));
+            console.log('[finalizeResults] 최종 통계:', finalStats);
+            
+            // 학습 상태 초기화
+            this.resetStats();
+            
+            return finalStats;
+        } catch (error) {
+            console.error('[finalizeResults] 오류:', error);
+            throw error;
+        }
+    }
+
+    /**
+     * 리소스 정리
+     */
+    // destroy 메서드 수정 - NewWordsMode 클래스
+    destroy() {
+        // 이미 정리된 경우
+        if (this.isDestroyed) {
+            console.log('[destroy] 이미 정리된 상태입니다');
+            return;
+        }
+        
+        console.log('[destroy] 리소스 정리 시작');
+        
+        // 로컬 스토리지 초기화
+        localStorage.removeItem('current_learning_state');
+        
+        // 카운터 초기화
+        this.knownCount = 0;
+        this.unknownCount = 0;
+        this.wordsStudied = 0;
+        
+        // Set 초기화
+        if (this.studiedWordsSet) {
+            this.studiedWordsSet.clear();
+        }
+        
+        // 정리 상태로 표시
+        this.isDestroyed = true;
+        
+        console.log('[destroy] 리소스 정리 완료');
+    }
+}
+class WordLearningApp {
+    constructor() {
+        const params = parseUrlParams();
+        this.type = params.get('type');
+        this.typeSettings = new TypeSettings(this.type);
+        
+        this.countCache = new WordCountCache();
+        this.lastUpdateTime = 0;
+        this.updateInterval = 2000;
+        this.pendingRequests = new Map();
+        this.requestQueue = Promise.resolve();
+    }
+
+    formatLongTermCount(value) {
+        if (!value) return '0';
+        if (typeof value === 'string' && value.includes('(')) {
+            const [oneDayAgo, total] = value.split('(');
+            return `<span class="long-term-before">${oneDayAgo}</span><span class="long-term-total">(${total}</span>`;
+        }
+        return value;
+    }
+    
+    // UI 초기화
+    initializeUI() {
+        const elements = {
+            isStudiedWordsCount: document.getElementById('isStudiedWordsCount'),  // ← 추가
+            shortTermCount: document.getElementById('shortTermCount'),
+            memorizingCount: document.getElementById('memorizingCount'),
+            qMemoryCount: document.getElementById('qMemoryCount'),
+            longTermCount: document.getElementById('longTermCount'),
+            difficultCount: document.getElementById('difficultCount')
+        };
+        
+        for (const key in elements) {
+            if (elements[key]) {
+                // 내용 먼저 비우기
+                if (key === 'longTermCount') {
+                    elements[key].innerHTML = '';
+                } else {
+                    elements[key].textContent = '';
+                }
+                
+                // 모든 클래스 제거
+                elements[key].classList.remove('loaded');
+                elements[key].classList.remove('loading');
+                
+                // 로딩 클래스 추가 - 비움 후에 추가해야 함
+                elements[key].classList.add('loading');
+                
+                // 부모 요소 업데이트 상태 제거
+                elements[key].parentElement.classList.remove('updated');
+            }
+        }
+        
+        // 애니메이션이 적용될 시간 주기
+        document.body.offsetHeight; // 강제 리플로우 발생
+    }
+
+    enhanceLoadingUI() {
+        // WordLearningApp의 updateWordCounts 메서드 내부에서 사용할 UI 개선 로직
+        const setLoadingState = (elements) => {
+            Object.values(elements).forEach(el => {
+                if (el) {
+                    // 이 순서가 중요합니다
+                    el.classList.remove('loaded');
+                    
+                    // 로딩 클래스를 먼저 추가
+                    el.classList.add('loading');
+                    
+                    // 그 다음 내용 비우기
+                    if (el.id === 'longTermCount') {
+                        el.innerHTML = '';
+                    } else {
+                        el.textContent = '';
+                    }
+                    
+                    el.parentElement.classList.remove('updated');
+                    
+                    // 애니메이션이 적용되었는지 확인
+                    console.log(`Element ${el.id} has loading class:`, el.classList.contains('loading'));
+                }
+            });
+        };
+        
+        const setLoadedState = (element, value) => {
+          if (!element) return;
+          
+          // 인터벌 확실히 제거
+          if (element._dotInterval) {
+            clearInterval(element._dotInterval);
+            element._dotInterval = null;
+          }
+          
+          // 먼저 로딩 클래스 제거
+          element.classList.remove('loading');
+          
+          // 약간의 딜레이 후 내용 설정 (도트 애니메이션이 완전히 사라지도록)
+          setTimeout(() => {
+            // 내용 설정
+            if (typeof value === 'number') {
+              // 숫자 카운트업 애니메이션
+              element.textContent = '0'; // 초기값 설정
+              
+              // 렌더링이 적용될 기회 제공
+              requestAnimationFrame(() => {
+                const startValue = 0;
+                const duration = 800;
+                const steps = 20;
+                const increment = value / steps;
+                let currentValue = startValue;
+                
+                const counter = setInterval(() => {
+                  currentValue += increment;
+                  if (currentValue >= value) {
+                    element.textContent = value;
+                    clearInterval(counter);
+                    // 숫자 설정 완료 후 상태 업데이트
+                    element.classList.add('loaded');
+                    element.parentElement.classList.add('updated');
+                  } else {
+                    element.textContent = Math.floor(currentValue);
+                  }
+                }, duration / steps);
+              });
+            } else {
+              // HTML 태그가 포함된 문자열인 경우 innerHTML 사용
+              if (value && value.includes('<span')) {
+                element.innerHTML = value;
+              } else {
+                element.textContent = value || '0';
+              }
+              
+              // 콘텐츠 설정 후 약간의 지연 후 loaded 클래스 추가 (렌더링 보장)
+              requestAnimationFrame(() => {
+                element.classList.add('loaded');
+                element.parentElement.classList.add('updated');
+              });
+            }
+          }, 50); // 50ms 지연으로 도트가 확실히 사라지도록 함
+        };
+        
+        return {
+            setLoadingState,
+            setLoadedState
+        };
+    }
+
+    // 단어 수 업데이트 - isStudied 필터를 모두 문자열로 변경
+    async updateWordCounts(mode, forceUpdate = false) {
+        // 디바운싱 로직 - 최소 시간 간격 내에는 다시 호출되지 않도록 함
+        const now = Date.now();
+        if (!this._lastUpdateTime) this._lastUpdateTime = 0;
+        if (!forceUpdate && (now - this._lastUpdateTime < 5000)) {
+            console.log('중복 호출 방지: updateWordCounts 호출 무시 (간격: ' + (now - this._lastUpdateTime) + 'ms)');
+            return false;
+        }
+        
+        // 진행 중인 업데이트가 있으면 취소 방지
+        if (this._updateInProgress) {
+            console.log('이미 업데이트 진행 중: 대기...');
+            try {
+                await this._updatePromise;
+                return true;
+            } catch (err) {
+                console.error('이전 업데이트 대기 오류:', err);
+            }
+        }
+        
+        // 새 업데이트 시작 전 상태 설정
+        this._lastUpdateTime = now;
+        this._updateInProgress = true;
+        
+        // 이 메서드의 Promise를 저장해서 다음 호출이 이 완료를 기다릴 수 있게 함
+        this._updatePromise = (async () => {
+            try {
+                // UI 초기화 (모든 수치를 0으로)
+                this.initializeUI();
+                
+                // 로딩 애니메이션이 보일 시간 추가
+                await new Promise(resolve => setTimeout(resolve, 300));
+                
+                // 이전 코드와 동일한 로직
+                if (forceUpdate) {
+                    this.countCache.invalidate();
+                }
+
+                const elements = {
+                   	isStudiedWordsCount: document.getElementById('isStudiedWordsCount'), // 변경된 ID
+                    shortTermCount: document.getElementById('shortTermCount'),
+                    memorizingCount: document.getElementById('memorizingCount'),
+                    qMemoryCount: document.getElementById('qMemoryCount'),
+                    longTermCount: document.getElementById('longTermCount'),
+                    difficultCount: document.getElementById('difficultCount')
+                };
+
+                const ui = this.enhanceLoadingUI();
+                
+                try {
+                    // 모드별 필요한 카운트 정의
+                    const countRequests = new Map();
+					
+					// difficult 필드가 항상 숫자형인지 확인
+					async function safeCountWithDifficult(filter) {
+					  try {
+						// difficult 필드가 객체인 경우 ($gt 등)
+						if (filter.difficult && typeof filter.difficult === 'object') {
+						  // 숫자형으로 변환 보장
+						  for (const op in filter.difficult) {
+							filter.difficult[op] = Number(filter.difficult[op]);
+						  }
+						} else if (filter.difficult !== undefined) {
+						  // 일반 difficult 필드 숫자형으로 변환
+						  filter.difficult = Number(filter.difficult);
+						}
+						
+						return await app.dbManager.getWordCount(filter);
+					  } catch (error) {
+						console.error('단어 카운트 오류:', error);
+						return 0;
+					  }
+					}
+				
+                    switch(mode) {
+                        case 'new':
+                          countRequests.set('totalWords', app.dbManager.getWordCount({}));
+						  countRequests.set('isStudiedWordsCount', app.dbManager.getWordCount({ isStudied: "1" }));
+                          countRequests.set('shortTermCount', app.dbManager.getWordCount({ isStudied: "1", known_2: "1" }));
+                          countRequests.set('memorizingCount', app.dbManager.getWordCount({ isStudied: "1", known_2: "0" }));
+                          countRequests.set('qMemoryCount', app.dbManager.getWordCount({ isStudied: "1", known_2: "0", status: "0" }));
+                          countRequests.set('difficultCount', safeCountWithDifficult({ isStudied: "1", difficult: { $gt: 2 } }));
+                          break;
+
+                        case 'shortTerm':
+                          countRequests.set('shortTermCount', app.dbManager.getWordCount({ isStudied: "1", known_2: "1" }));
+                          countRequests.set('longTermCount', Promise.all([
+                            app.dbManager.getWordCount({ isStudied: "1", known_2: "2" }),
+                            app.dbManager.getLongTermCountBeforeDate(getTodayISOString())
+                          ]).then(([total, beforeTime]) => `${beforeTime}(${total})`));
+                          countRequests.set('memorizingCount', app.dbManager.getWordCount({ isStudied: "1", known_2: "0" }));
+                          countRequests.set('qMemoryCount', app.dbManager.getWordCount({ isStudied: "1", known_2: "0", status: "0" }));
+                          countRequests.set('difficultCount', safeCountWithDifficult({ isStudied: "1", difficult: { $gt: 2 } }));
+                          break;
+
+                        case 'longTerm':
+                          countRequests.set('longTermCount', Promise.all([
+                            app.dbManager.getWordCount({ isStudied: "1", known_2: "2" }),
+                            app.dbManager.getLongTermCountBeforeDate(getTodayISOString())
+                          ]).then(([total, beforeTime]) => `${beforeTime}(${total})`));
+                          countRequests.set('memorizingCount', app.dbManager.getWordCount({ isStudied: "1", known_2: "0" }));
+                          countRequests.set('qMemoryCount', app.dbManager.getWordCount({ isStudied: "1", known_2: "0", status: "0" }));
+                          countRequests.set('difficultCount', safeCountWithDifficult({ isStudied: "1", difficult: { $gt: 2 } }));
+                          break;
+
+                        case 'memorizing':
+                          countRequests.set('shortTermCount', app.dbManager.getWordCount({ isStudied: "1", known_2: "1" }));
+                          countRequests.set('memorizingCount', app.dbManager.getWordCount({ isStudied: "1", known_2: "0" }));
+                          countRequests.set('qMemoryCount', app.dbManager.getWordCount({ isStudied: "1", known_2: "0", status: "0" }));
+                          countRequests.set('difficultCount', safeCountWithDifficult({ isStudied: "1", difficult: { $gt: 2 } }));
+                          break;
+
+                        case 'qMemory':
+                          countRequests.set('qMemoryCount', app.dbManager.getWordCount({ isStudied: "1", known_2: "0", status: "0" }));
+                          countRequests.set('difficultCount', safeCountWithDifficult({ isStudied: "1", difficult: { $gt: 2 } }));
+                          break;
+                        
+                        case 'difficult':
+                          countRequests.set('difficultCount', safeCountWithDifficult({ isStudied: "1", difficult: { $gt: 2 } }));
+                          break;
+                        
+                        default:
+                          countRequests.set('totalWords', app.dbManager.getWordCount({}));
+						  countRequests.set('isStudiedWordsCount', app.dbManager.getWordCount({ isStudied: "1" }));
+                          countRequests.set('shortTermCount', app.dbManager.getWordCount({ isStudied: "1", known_2: "1" }));
+                          countRequests.set('memorizingCount', app.dbManager.getWordCount({ isStudied: "1", known_2: "0" }));
+                          countRequests.set('qMemoryCount', app.dbManager.getWordCount({ isStudied: "1", known_2: "0", status: "0" }));
+                          countRequests.set('longTermCount', Promise.all([
+                            app.dbManager.getWordCount({ isStudied: "1", known_2: "2" }),
+                            app.dbManager.getLongTermCountBeforeDate(getTodayISOString())
+                          ]).then(([total, beforeTime]) => `${beforeTime}(${total})`));
+                          countRequests.set('difficultCount', safeCountWithDifficult({ isStudied: "1", difficult: { $gt: 2 } }));
+                      }
+
+                    // 병렬로 모든 카운트 요청 실행
+                    const results = new Map();
+                    await Promise.all(
+                        Array.from(countRequests.entries()).map(async ([key, promise]) => {
+                            try {
+                                results.set(key, await promise);
+                            } catch (error) {
+                                console.error(`Error fetching ${key}:`, error);
+                                results.set(key, 0);
+                            }
+                        })
+                    );
+
+                    // 쓸데없는 딜레이 제거하고 바로 업데이트
+                    results.forEach((value, key) => {
+                        const element = elements[key];
+                        if (element && value !== null) {
+                            if (key === 'longTermCount') {
+                                ui.setLoadedState(element, this.formatLongTermCount(value));
+                            } else {
+                                ui.setLoadedState(element, value);
+                            }
+                        }
+                    });
+
+                    return true;
+                } catch (error) {
+                    console.error('Word count update error:', error);
+                    return false;
+                }
+            } catch (err) {
+                console.error('UI 업데이트 중 오류:', err);
+                return false;
+            } finally {
+                this._updateInProgress = false;
+            }
+        })();
+        
+        try {
+            return await this._updatePromise;
+        } catch (err) {
+            console.error('updateWordCounts 최종 오류:', err);
+            return false;
+        }
+    }
+
+    async initialize(phone) {
+        this.userPhone = phone;
+        console.log('앱 초기화:', {
+            phone: this.userPhone
+        });
+        
+        await this.updateWordCounts();
+        
+        // 모드 초기화
+        this.modes = {
+            'new': new NewWordsMode(),
+            'shortTerm': new ShortTermQMemoryMode(),
+            'memorizing': new MemorizingMode(),
+            'qMemory': new QMemoryMode(),
+            'longTerm': new LongTermQMemoryMode()
+        };
+        
+        // 암기중 모드 데이터 미리 로드
+        // this.modes.memorizing.preloadData(this.userPhone);
+    }
+    
+    // UIManager 클래스의 showMessage 메서드 이용
+	async startMode(modeName) {
+		console.log('모드 시작 요청:', modeName);
+		
+		if (!this.modes[modeName]) {
+			console.error('잘못된 모드:', modeName);
+			return {
+				success: false,
+				error: '지원하지 않는 학습 모드입니다.'
+			};
+		}
+
+		try {
+			this.countCache.invalidate();
+
+			// 기존 모드가 있다면 정리
+			if (this.currentMode && typeof this.currentMode.destroy === 'function') {
+				this.currentMode.destroy();
+			}
+			
+			// 새 모드 초기화
+			const initialized = await this.modes[modeName].initialize(this.userPhone);
+			console.log(`${modeName} 모드 초기화 결과:`, initialized);
+			
+			if (!initialized) {
+				// 신규단어 모드에서 모든 단어를 학습한 경우 특별 메시지
+				if (modeName === 'new') {
+					const totalWords = await this.dbManager.getWordCount({});
+					const studiedWordsCount = await this.dbManager.getWordCount({ isStudied: "1" });
+					if (studiedWordsCount >= totalWords) {
+						throw new Error('축하합니다! 모든 단어를 학습 완료했습니다. 다른 모드에서 복습해보세요.');
+					}
+				}
+				throw new Error('학습할 단어를 불러올 수 없습니다.');
+			}
+
+			const hasWords = this.modes[modeName].getCurrentWord || 
+							(this.modes[modeName].words && this.modes[modeName].words.length > 0);
+					
+			if (!hasWords) {
+				throw new Error('학습할 단어가 없습니다.');
+			}
+
+			// ⭐ 중요: currentMode 설정
+			this.currentMode = this.modes[modeName];
+			
+			// ⭐ UIManager의 app 객체와 동기화
+			if (window.uiManager && window.uiManager.app) {
+				window.uiManager.app.currentMode = this.currentMode;
+				console.log('UIManager.app.currentMode 동기화 완료');
+			}
+			
+			// 디버깅용 로그
+			console.log('currentMode 설정 확인:', {
+				exists: !!this.currentMode,
+				currentIndex: this.currentMode.currentIndex,
+				wordsLength: this.currentMode.words?.length,
+				uiManagerSync: !!(window.uiManager?.app?.currentMode)
+			});
+
+			return { success: true };
+		} catch (error) {
+			console.error(`${modeName} 모드 시작 오류:`, error);
+			return {
+				success: false,
+				error: error.message || '학습할 단어를 불러오는데 실패했습니다.'
+			};
+		}
+	}
+
+    getCurrentWord() {
+        if (!this.currentMode) return null;
+        return this.currentMode.getCurrentWord();
+    }
+
+	// 사용자 응답 처리
+	async handleAnswer(isKnown) {
+		// 이미 처리 중인지 확인
+		if (this._isHandlingAnswer) {
+			console.log('[handleAnswer] 이미 처리 중입니다');
+			return false;
+		}
+		
+		// 처리 중 플래그 설정
+		this._isHandlingAnswer = true;
+		
+		try {
+			const elements = {
+				cardSlide: document.getElementById('cardSlide'),
+				answerButtons: document.getElementById('answerButtons'),
+				navigationButtons: document.getElementById('navigationButtons')
+			};
+			
+			// 즉시 카드 뒷면을 보여줌 (UI 응답성 유지)
+			if (elements.cardSlide) {
+				elements.cardSlide.classList.add('show-answer');
+			}
+			if (elements.answerButtons) {
+				elements.answerButtons.style.display = 'none';
+			}
+			if (elements.navigationButtons) {
+				elements.navigationButtons.style.display = 'flex';
+			}
+			
+			// 현재 단어 로깅
+			const currentWord = this.getCurrentWord();
+			const currentModeIndex = this.currentMode.currentIndex;
+			
+			console.log('[handleAnswer] 처리 단어:', {
+				word: currentWord?.word,
+				No: currentWord?.No,
+				isKnown: isKnown,
+				모드인덱스: currentModeIndex
+			});
+			
+			// 백그라운드에서 상태 업데이트하고 결과 확인
+			const updateSuccessful = await this.currentMode.handleAnswer(this.userPhone, isKnown);
+			
+			if (updateSuccessful) {
+				console.log('[handleAnswer] 저장 완료');
+				// 캐시 무효화 (메인 화면으로 돌아갔을 때 정확한 통계 표시를 위해)
+				if (this.countCache) {
+					this.countCache.invalidate();
+				}
+			} else {
+				console.error('[handleAnswer] 단어 상태 업데이트 실패');
+			}
+			
+			return updateSuccessful;
+		} catch (error) {
+			console.error('[handleAnswer] UI 처리 오류:', error);
+			return false;
+		} finally {
+			// 처리 완료 후 플래그 해제 (더 긴 지연시간으로 안전성 확보)
+			setTimeout(() => {
+				this._isHandlingAnswer = false;
+			}, 800);
+		}
+	}
+}
+// AirtableManager 클래스 (기존 코드 유지, 필요한 부분만 어댑터에서 사용)
+class AirtableManager {
+    constructor() {
+        const params = parseUrlParams();
+        
+        this.apiKey = decodeURIComponent(params.get('airtable_apikey')).trim();
+        this.baseUrl = decodeURIComponent(params.get('airtable_user_DB')).trim();
+        this.challengeTable = decodeURIComponent(params.get('airtable_user_table')).trim();
+        this.contents = decodeURIComponent(params.get('contents')).trim();
+        this.contentsBaseUrl = decodeURIComponent(params.get('airtable_contents_DB')).trim();
+        this.wordTable = decodeURIComponent(params.get('airtable_contents_table')).trim();
+
+        if (!this.apiKey || !this.baseUrl || !this.challengeTable || 
+            !this.contents || !this.contentsBaseUrl || !this.wordTable) {
+            throw new Error('Airtable 설정이 누락되었습니다');
+        }
+    }
+	
+	// 메서드 구현은 Adapter에서 처리하므로 비워둠
+    async getStudyCount(phone) {
+        return { get_id_air: null, study_count: 0 };
+    }
+    
+    async createNewStudyRecord(phone) {
+        return { get_id_air: null, study_count: 0 };
+    }
+    
+    async updateStudyCount(recordId, count) {
+        return true;
+    }
+    
+    async getNewWords(studyCount) {
+        return [];
+    }
+    
+    async getWordByAirtableId(airtableId) {
+        return null;
+    }
+    
+    async getWordByNo(no) {
+        return null;
+    }
+}
+// VipUpCacheManager 클래스 개선 - 완전한 오류 방지 버전
+(function() {
+    // 즉시 실행 함수로 감싸서 스코프 격리
+
+    // 전역 변수로 이미 정의되어 있는지 확인
+    if (window.VipUpCacheManager) {
+        console.log('VipUpCacheManager가 이미 정의되어 있습니다.');
+        return;
+    }
+
+    // 클래스 정의
+    class VipUpCacheManager {
+        constructor() {
+            // 안전한 URL 파라미터 파싱
+            let params = { get: () => null };
+            try {
+                if (typeof parseUrlParams === 'function') {
+                    params = parseUrlParams();
+                } else if (window.parseUrlParams) {
+                    params = window.parseUrlParams();
+                }
+            } catch (e) {
+                console.warn('URL 파라미터 파싱 오류:', e);
+            }
+            
+            // API 키와 기본 URL 설정
+            try {
+                this.apiKey = params.get('airtable_apikey') ? decodeURIComponent(params.get('airtable_apikey')).trim() : null;
+                this.baseUrl = params.get('airtable_contents_DB') ? decodeURIComponent(params.get('airtable_contents_DB')).trim() : null;
+                this.tableName = params.get('airtable_contents_table') ? decodeURIComponent(params.get('airtable_contents_table')).trim() : null;
+            } catch (e) {
+                console.warn('파라미터 디코딩 오류:', e);
+                this.apiKey = null;
+                this.baseUrl = null;
+                this.tableName = null;
+            }
+
+            if (!this.apiKey || !this.baseUrl || !this.tableName) {
+                console.warn('Airtable 설정이 누락되었습니다');
+            }
+
+            // 캐시 및 요청 관리 설정
+            this.cache = new Map();
+            this.notFoundIds = new Set();
+            this.requestCount = 0;
+            this.lastRequestTime = 0;
+            this.requestLimit = 4; // 초당 4번으로 제한
+            this.requestTimeWindow = 1000; // 1초
+            
+            // DB 연결 재시도 관련 설정
+            this.dbRetryDelay = 500; // 500ms
+            this.maxDbRetries = 3;
+            
+            // 초기화 완료 플래그
+            this.initialized = true;
+            
+            // 이미 로드된 스크립트 확인
+            this._checkLoadedScripts();
+        }
+        
+        // 이미 로드된 스크립트 확인
+        _checkLoadedScripts() {
+            this.hasNetworkManager = false;
+            
+            // 직접 클래스 존재 여부 확인
+            try {
+                if (typeof NetworkManager === 'function') {
+                    this.hasNetworkManager = true;
+                } else if (window.NetworkManager) {
+                    this.hasNetworkManager = true;
+                }
+            } catch (e) {
+                // NetworkManager가 아직 로드되지 않음
+                this.hasNetworkManager = false;
+                console.log('NetworkManager가 아직 로드되지 않았습니다.');
+            }
+            
+            // 객체 인스턴스 확인
+            if (window.app && window.app.networkManager) {
+                this.hasNetworkManager = true;
+            } else if (window.networkManager) {
+                this.hasNetworkManager = true;
+            }
+            
+            console.log(`스크립트 확인: NetworkManager ${this.hasNetworkManager ? '로드됨' : '로드되지 않음'}`);
+        }
+
+        // 에어테이블 API 호출 제한 관리
+        async rateLimit() {
+            const now = Date.now();
+            this.requestCount++;
+            
+            // 시간 창이 지나면 카운터 리셋
+            if (now - this.lastRequestTime > this.requestTimeWindow) {
+                this.requestCount = 1;
+                this.lastRequestTime = now;
+                return;
+            }
+            
+            // 제한에 도달하면 대기
+            if (this.requestCount > this.requestLimit) {
+                const waitTime = this.requestTimeWindow - (now - this.lastRequestTime) + 100; // 안전 마진 추가
+                await new Promise(resolve => setTimeout(resolve, waitTime));
+                this.requestCount = 1;
+                this.lastRequestTime = Date.now();
+            }
+        }
+
+        // 네트워크 상태 안전하게 확인 - 가장 안전한 방식
+        isNetworkOnline() {
+            try {
+                // 네트워크 상태 확인 동적 체이닝
+                // 1. app.networkManager
+                if (window.app?.networkManager?.isNetworkOnline) {
+                    return window.app.networkManager.isNetworkOnline();
+                }
+                
+                // 2. 전역 networkManager 인스턴스
+                if (window.networkManager?.isNetworkOnline) {
+                    return window.networkManager.isNetworkOnline();
+                }
+                
+                // 3. 인라인 NetworkManager 인스턴스 생성 시도 (이 부분 완전 제거)
+                
+                // 4. navigator.onLine 속성 사용 (기본 폴백)
+                return navigator.onLine;
+            } catch (error) {
+                console.warn('네트워크 상태 확인 오류:', error);
+                // 오류 발생 시 온라인 상태로 가정 (안전한 폴백)
+                return true;
+            }
+        }
+
+        // 안전한 IndexedDB 작업
+        async safeDbOperation(operation, fallback = null) {
+            if (!window.app || !window.app.dbManager) {
+                return fallback;
+            }
+            
+            let retries = 0;
+            
+            while (retries < this.maxDbRetries) {
+                try {
+                    return await operation();
+                } catch (error) {
+                    retries++;
+                    
+                    // DB 관련 오류 타입 확인 및 재시도
+                    const isDbConnectionError = (
+                        (error.name === 'InvalidStateError' && 
+                         error.message.includes('database connection is closing')) ||
+                        error.message.includes('transaction') || 
+                        error.message.includes('IDBDatabase')
+                    );
+                    
+                    if (isDbConnectionError && retries < this.maxDbRetries) {
+                        console.warn(`DB 연결 오류, ${retries}번째 재시도 중...`);
+                        await new Promise(resolve => setTimeout(resolve, this.dbRetryDelay * retries));
+                        continue;
+                    }
+                    
+                    // 다른 오류이거나 최대 재시도 횟수 초과
+                    console.error(`DB 작업 실패(${retries}/${this.maxDbRetries}):`, error);
+                    return fallback;
+                }
+            }
+            
+            return fallback;
+        }
+
+        // VipUp 데이터 처리 메서드 (JSON 배열 형식인 경우에만 처리)
+        processVipUpData(vipup) {
+            if (!vipup) return null;
+            
+            try {
+                // 명확한 JSON 배열 패턴인지 확인 (["내용"] 형태)
+                if (typeof vipup === 'string' && 
+                    vipup.match(/^\s*\[\s*".*"\s*\]\s*$/)) {
+                    try {
+                        // JSON 파싱 시도
+                        const parsedArray = JSON.parse(vipup);
+                        
+                        // 배열이고 첫 번째 요소가 문자열인 경우만 처리
+                        if (Array.isArray(parsedArray) && 
+                            parsedArray.length > 0 && 
+                            typeof parsedArray[0] === 'string') {
+                            return parsedArray[0];
+                        }
+                    } catch (e) {
+                        // 파싱 오류 시 원본 반환
+                        console.warn('JSON 파싱 실패, 원본 텍스트 사용:', e);
+                    }
+                }
+                
+                // 위 조건에 맞지 않으면 원본 그대로 반환
+                return vipup;
+            } catch (e) {
+                console.warn('VipUp 텍스트 처리 오류:', e);
+                return vipup; // 오류 발생 시 원본 반환
+            }
+        }
+        
+        // 로컬 스토리지에 안전하게 저장
+        safeLocalStorageSet(key, value) {
+            try {
+                localStorage.setItem(key, value);
+                return true;
+            } catch (error) {
+                console.warn(`로컬 스토리지 저장 오류(${key}):`, error);
+                return false;
+            }
+        }
+        
+        // 로컬 스토리지에서 안전하게 가져오기
+        safeLocalStorageGet(key) {
+            try {
+                return localStorage.getItem(key);
+            } catch (error) {
+                console.warn(`로컬 스토리지 접근 오류(${key}):`, error);
+                return null;
+            }
+        }
+
+        // 개선된 VipUp 데이터 로드 메서드 - 모든 오류 처리 통합
+        async fetchVipUp(airtableId) {
+            if (!airtableId) return null;
+            
+            // 캐시가 초기화되지 않았거나 airtableId가 없는 경우
+            if (!this.initialized || !airtableId) return null;
+
+            try {
+                // 1. 메모리 캐시 확인
+                if (this.cache.has(airtableId)) {
+                    const cachedVipUp = this.cache.get(airtableId);
+                    return this.processVipUpData(cachedVipUp);
+                }
+                
+                // 찾을 수 없는 ID인 경우
+                if (this.notFoundIds.has(airtableId)) return null;
+                
+                // 2. 로컬 스토리지에서 확인
+                const localVipUpKey = `vipup-${airtableId}`;
+                const localVipUp = this.safeLocalStorageGet(localVipUpKey);
+                
+                if (localVipUp) {
+                    // 로컬 스토리지에서 찾았으면 메모리 캐시에 추가
+                    console.log(`로컬 스토리지에서 VipUp 데이터 찾음: ${airtableId}`);
+                    this.cache.set(airtableId, localVipUp);
+                    return this.processVipUpData(localVipUp);
+                }
+                
+                // 3. 네트워크 상태 확인 - 오프라인이면 null 반환
+                if (!this.isNetworkOnline()) {
+                    console.log('오프라인 상태: 에어테이블에서 VipUp 로드 건너뜀');
+                    return null;
+                }
+                
+                // 4. API 호출 제한 적용
+                await this.rateLimit();
+                
+                // 5. ID로 직접 레코드 조회
+                if (!this.baseUrl || !this.tableName || !this.apiKey) {
+                    console.warn('Airtable 설정이 누락되어 API 호출을 건너뜁니다');
+                    return null;
+                }
+                
+                const url = `${this.baseUrl}/${this.tableName}/${airtableId}`;
+                
+                console.log(`에어테이블에서 VipUp 데이터 로드 완료: ${airtableId}`);
+                
+                // 8. 가공된 데이터를 반환
+                return this.processVipUpData(vipup);
+            } catch (error) {
+                console.error(`VipUp 데이터 로드 오류(${airtableId}):`, error);
+                return null;
+            }
+        }
+        
+        // 원본 VipUp 데이터 가져오기 (처리하지 않은 원본)
+        getRawVipUp(airtableId) {
+            if (!airtableId) return null;
+            return this.cache.has(airtableId) ? this.cache.get(airtableId) : null;
+        }
+        
+        // 여러 ID의 VipUp 데이터를 일괄 로드하는 메서드 - 병렬 처리 제한, 오류 처리 강화
+        async fetchMultipleVipUps(airtableIds, options = {}) {
+            if (!airtableIds || !Array.isArray(airtableIds) || airtableIds.length === 0) return {};
+            
+            try {
+                const results = {};
+                const { concurrency = 5 } = options;  // 기본 병렬 처리 수 5로 제한
+                
+                // 유효하지 않은 ID 필터링
+                const validIds = airtableIds.filter(id => id && typeof id === 'string');
+                
+                if (validIds.length === 0) {
+                    console.warn('유효한 ID가 없습니다');
+                    return {};
+                }
+                
+                // ID들을 필터링 (유효한 값만, 캐시에 없는 것만)
+                const idsToFetch = validIds.filter(id => 
+                    !this.cache.has(id) && !this.notFoundIds.has(id)
+                );
+                
+                // 캐시에서 바로 가져올 수 있는 ID 처리
+                validIds.forEach(id => {
+                    if (this.cache.has(id)) {
+                        results[id] = this.processVipUpData(this.cache.get(id));
+                    } else if (!idsToFetch.includes(id)) {
+                        results[id] = null;
+                    }
+                });
+                
+                // 새로 가져올 ID가 없으면 결과 바로 반환
+                if (idsToFetch.length === 0) {
+                    return results;
+                }
+                
+                // 네트워크 상태 확인
+                if (!this.isNetworkOnline()) {
+                    console.log('오프라인 상태: 에어테이블에서 VipUp 일괄 로드 건너뜀');
+                    return results; // 현재 캐시에 있는 결과만 반환
+                }
+                
+                // 병렬 처리를 위한 배치 분할
+                for (let i = 0; i < idsToFetch.length; i += concurrency) {
+                    const batch = idsToFetch.slice(i, i + concurrency);
+                    const batchPromises = batch.map(id => this.fetchVipUp(id));
+                    
+                    try {
+                        await Promise.all(batchPromises);
+                        
+                        // 결과 수집
+                        batch.forEach(id => {
+                            if (id && this.cache.has(id)) {
+                                results[id] = this.processVipUpData(this.cache.get(id));
+                            } else {
+                                results[id] = null;
+                            }
+                        });
+                        
+                        // 대량 요청 시 잠시 대기 (API 제한 방지)
+                        if (i + concurrency < idsToFetch.length) {
+                            await new Promise(resolve => setTimeout(resolve, 100));
+                        }
+                    } catch (error) {
+                        console.error(`VipUp 데이터 배치 로드 오류 (${i}~${i+batch.length-1}):`, error);
+                        // 오류가 발생해도 계속 진행
+                    }
+                }
+                
+                // 캐시 크기 관리
+                this.manageCacheSize();
+                
+                return results;
+            } catch (error) {
+                console.error('다중 VipUp 데이터 로드 치명적 오류:', error);
+                return {}; // 빈 객체 반환
+            }
+        }
+        
+        // 캐시 관리: 메모리 캐시 크기 제한
+        manageCacheSize(maxSize = 500) {
+            if (this.cache.size <= maxSize) return;
+            
+            console.log(`캐시 크기 제한: ${this.cache.size} -> ${maxSize}`);
+            
+            // LRU 방식으로 오래된 항목부터 제거
+            const keysToRemove = Array.from(this.cache.keys()).slice(0, this.cache.size - maxSize);
+            keysToRemove.forEach(key => this.cache.delete(key));
+            
+            console.log(`캐시 정리 완료: ${keysToRemove.length}개 항목 제거됨`);
+        }
+        
+        // 디버그용: 현재 캐시 상태 출력
+        debugCache() {
+            console.log('VipUp 캐시 상태:');
+            console.log(`- 캐시된 항목 수: ${this.cache.size}`);
+            console.log(`- 찾을 수 없는 ID 수: ${this.notFoundIds.size}`);
+            
+            // 캐시 내용 샘플 출력 (최대 5개)
+            if (this.cache.size > 0) {
+                console.log('- 캐시 샘플:');
+                let count = 0;
+                for (const [id, value] of this.cache.entries()) {
+                    if (count >= 5) break;
+                    const previewValue = typeof value === 'string' 
+                        ? (value.length > 30 ? value.substring(0, 30) + '...' : value) 
+                        : String(value);
+                    console.log(`  ${id}: ${previewValue}`);
+                    count++;
+                }
+            }
+        }
+        
+        // 클래스 리소스 정리
+        dispose() {
+            this.cache.clear();
+            this.notFoundIds.clear();
+            this.initialized = false;
+            console.log('VipUpCacheManager 리소스 정리 완료');
+        }
+    }
+
+    // 전역 객체에 할당
+    window.VipUpCacheManager = VipUpCacheManager;
+    console.log('VipUpCacheManager 클래스가 성공적으로 정의되었습니다.');
+})();
+
+	/**
+	 * 앱 초기화 함수 - 순서 보장 버전
+	 */
+	async function initializeApp() {
+		try {
+			// 이미 초기화되었는지 확인
+			if (window.app && window.app.initialized) {
+				console.log('앱이 이미 초기화되었습니다.');
+				return true;
+			}
+			
+			// 1. URL 파라미터 파싱
+			const params = parseUrlParams();
+			const phoneParam = params.get('phoneParam');
+			const type = params.get('type');
+			
+			if (!phoneParam) {
+				throw new Error('전화번호 파라미터가 없습니다');
+			}
+			const cleanPhone = phoneParam.replace(/[^0-9]/g, '');
+			console.log('초기화 중인 전화번호:', cleanPhone);
+			console.log('설정된 타입:', type);
+
+			// 2. 로딩 상태 표시
+			if (typeof showLoadingStates === 'function') {
+				showLoadingStates();
+			}
+
+			// DOM 렌더링 기회를 위한 짧은 대기
+			await new Promise(resolve => setTimeout(resolve, 100));
+			
+			// 3. window.app 객체 초기화 (먼저 빈 객체로 생성)
+			window.app = {
+				initialized: false,
+				userPhone: cleanPhone,
+				type: type
+			};
+			
+			// 4. ⭐ ContentBasedDBManager 사용 (IndexedDBManager 대신)
+			console.log('ContentBasedDBManager 대기 중...');
+			
+			let dbManager;
+			if (window.ContentBasedDBManagerPromise) {
+				try {
+					const ContentBasedDBManagerClass = await window.ContentBasedDBManagerPromise;
+					dbManager = new ContentBasedDBManagerClass();
+					console.log('ContentBasedDBManager Promise에서 생성 완료');
+				} catch (promiseError) {
+					console.error('ContentBasedDBManager Promise 오류:', promiseError);
+					throw new Error('ContentBasedDBManager 로드 실패');
+				}
+			} else if (window.ContentBasedDBManager && typeof window.ContentBasedDBManager === 'function') {
+				dbManager = new window.ContentBasedDBManager();
+				console.log('ContentBasedDBManager 직접 생성 완료');
+			} else {
+				throw new Error('ContentBasedDBManager를 찾을 수 없습니다');
+			}
+			
+			// DB 초기화
+			await dbManager.initDatabase();
+			window.app.dbManager = dbManager;
+			console.log('ContentBasedDBManager 초기화 완료:', dbManager.DB_NAME);
+			
+			// 전화번호 및 타입 설정 저장
+			await dbManager.saveSetting('currentPhoneNumber', cleanPhone);
+			await dbManager.saveSetting('currentType', type);
+			
+			// 필드 타입 검증 및 정규화
+			if (typeof dbManager.validateFieldTypes === 'function') {
+				const result = await dbManager.validateFieldTypes();
+				if (result?.issues?.length) {
+					await dbManager.normalizeAllFieldTypes();
+				}
+			}
+			
+			// 5. 나머지 매니저들 초기화
+			// 네트워크 매니저
+			if (typeof NetworkManager === 'function') {
+				window.app.networkManager = new NetworkManager();
+			}
+			
+			// 타입 설정
+			if (typeof TypeSettings === 'function') {
+				window.app.typeSettings = new TypeSettings(type);
+			}
+			
+			// 단어 개수 캐시
+			if (typeof WordCountCache === 'function') {
+				window.app.countCache = new WordCountCache();
+			}
+			
+			// Airtable 매니저
+			if (typeof AirtableManager === 'function') {
+				window.app.airtableManager = new AirtableManager();
+				
+				// 어댑터도 추가
+				if (typeof AirtableManagerAdapter === 'function') {
+					window.app.airtableAdapter = new AirtableManagerAdapter(
+						window.app.airtableManager,
+						window.app.dbManager,
+						window.app.networkManager
+					);
+					
+					// DirectDataLoader 설정
+					if (typeof DirectDataLoader === 'function') {
+						const directLoader = new DirectDataLoader(window.app.dbManager);
+						window.app.airtableAdapter.setHybridLoader(directLoader);
+					}
+				}
+			}
+			
+			// 6. WordLearningApp 통합
+			if (typeof WordLearningApp === 'function') {
+				const appInstance = new WordLearningApp();
+				
+				// 기존 속성을 보존하면서 통합
+				const oldApp = { ...window.app };
+				Object.assign(window.app, appInstance);
+				
+				// 기존 속성 복원
+				Object.keys(oldApp).forEach(key => {
+					if (!(key in appInstance)) {
+						window.app[key] = oldApp[key];
+					}
+				});
+				
+				// 초기화 호출
+				await window.app.initialize(cleanPhone);
+			}
+			
+			// 7. 초기화 완료 플래그 설정 (UIManager 생성 전에!)
+			window.app.initialized = true;
+			
+			// 8. UI 매니저 초기화 (app 초기화 완료 후)
+			if (typeof UIManager === 'function') {
+				window.uiManager = new UIManager(window.app);
+				console.log('UIManager 초기화 완료');
+			}
+			
+			// 9. 오프라인 UI 초기화
+			if (typeof initializeOfflineUI === 'function') {
+				initializeOfflineUI();
+			}
+			
+			console.log('✅ 앱 초기화 완료! (ContentBasedDBManager 사용)');
+			console.log('DB 이름:', window.app.dbManager.DB_NAME);
+			return true;
+		} catch (error) {
+			console.error('앱 초기화 중 오류 발생:', error);
+			const mainMessage = document.getElementById('mainMessage');
+			if (mainMessage) {
+				mainMessage.textContent = `초기화 중 오류가 발생했습니다: ${error.message}`;
+				mainMessage.style.display = 'block';
+				mainMessage.className = 'message-container show';
+			}
+			return false;
+		}
+	}
+
+	// VipUp 암호화 마이그레이션 함수
+	window.migrateVipUpEncryption = async function() {
+	  if (!window.app || !window.app.dbManager || !window.VipUpEncryption) {
+		console.error('필요한 모듈이 로드되지 않았습니다');
+		return;
+	  }
+	  
+	  try {
+		console.log('VipUp 암호화 마이그레이션 시작...');
+		
+		// 모든 단어 가져오기
+		const allWords = await app.dbManager.getAllWords();
+		let migratedCount = 0;
+		let skippedCount = 0;
+		let alreadyEncryptedCount = 0;
+		
+		for (const word of allWords) {
+		  if (word.vipup) {
+			// 이미 암호화되었는지 확인
+			if (!VipUpEncryption.isEncrypted(word.vipup)) {
+			  try {
+				// 암호화
+				const encryptedVipup = VipUpEncryption.encrypt(word.vipup);
+				
+				// DB 업데이트
+				await app.dbManager.updateWord(word._id, { vipup: encryptedVipup });
+				
+				migratedCount++;
+				
+				// 진행 상황 표시
+				if (migratedCount % 50 === 0) {
+				  console.log(`진행 중: ${migratedCount}개 단어 암호화됨`);
+				}
+			  } catch (error) {
+				console.error(`단어 ${word._id} 암호화 실패:`, error);
+				skippedCount++;
+			  }
+			} else {
+			  alreadyEncryptedCount++;
+			}
+		  }
+		}
+		
+		console.log(`VipUp 암호화 마이그레이션 완료!`);
+		console.log(`- 총 단어: ${allWords.length}개`);
+		console.log(`- 새로 암호화됨: ${migratedCount}개`);
+		console.log(`- 이미 암호화됨: ${alreadyEncryptedCount}개`);
+		console.log(`- 오류/건너뜀: ${skippedCount}개`);
+		
+		return {
+		  total: allWords.length,
+		  migrated: migratedCount,
+		  alreadyEncrypted: alreadyEncryptedCount,
+		  skipped: skippedCount
+		};
+	  } catch (error) {
+		console.error('마이그레이션 오류:', error);
+		return null;
+	  }
+	}
+
+	// VipUp 암호화 상태 디버깅 함수
+	window.debugVipUpEncryption = async function() {
+	  console.log('=== VipUp 암호화 디버그 ===');
+	  
+	  if (!window.app || !window.app.dbManager) {
+		console.error('앱이 초기화되지 않았습니다');
+		return;
+	  }
+	  
+	  // 암기중 단어 샘플 가져오기
+	  const sampleWords = await app.dbManager.getWords({ isStudied: "1", known_2: "0" }, 5);
+	  
+	  console.log(`검사할 단어 수: ${sampleWords.length}`);
+	  
+	  let encryptedCount = 0;
+	  let unencryptedCount = 0;
+	  
+	  for (const word of sampleWords) {
+		console.log(`\n단어: ${word.word}`);
+		
+		if (word.vipup) {
+		  console.log(`VipUp 길이: ${word.vipup.length}자`);
+		  console.log(`처음 50자: ${word.vipup.substring(0, 50)}...`);
+		  
+		  const isEncrypted = VipUpEncryption.isEncrypted(word.vipup);
+		  console.log(`암호화 여부: ${isEncrypted ? '✅ 암호화됨' : '❌ 평문'}`);
+		  
+		  if (isEncrypted) {
+			encryptedCount++;
+			try {
+			  const decrypted = VipUpEncryption.decrypt(word.vipup);
+			  console.log(`복호화 성공: ${decrypted.substring(0, 50)}...`);
+			} catch (e) {
+			  console.error('복호화 실패:', e.message);
+			}
+		  } else {
+			unencryptedCount++;
+		  }
+		} else {
+		  console.log('VipUp 없음');
+		}
+	  }
+	  
+	  console.log('\n=== 요약 ===');
+	  console.log(`암호화된 단어: ${encryptedCount}개`);
+	  console.log(`암호화되지 않은 단어: ${unencryptedCount}개`);
+	  console.log('=== 디버그 완료 ===');
+	};
+
+	// VipUp 특정 단어 확인 함수
+	window.checkVipUpForWord = async function(wordText) {
+	  if (!window.app || !window.app.dbManager) {
+		console.error('앱이 초기화되지 않았습니다');
+		return;
+	  }
+	  
+	  try {
+		// 단어 검색
+		const words = await app.dbManager.getWords({ word: wordText }, 1);
+		
+		if (words.length === 0) {
+		  console.log(`"${wordText}" 단어를 찾을 수 없습니다`);
+		  return;
+		}
+		
+		const word = words[0];
+		console.log(`\n=== "${wordText}" 단어 VipUp 정보 ===`);
+		console.log(`ID: ${word._id}`);
+		console.log(`Airtable ID: ${word.airtableId}`);
+		
+		if (word.vipup) {
+		  const isEncrypted = VipUpEncryption.isEncrypted(word.vipup);
+		  console.log(`암호화 상태: ${isEncrypted ? '✅ 암호화됨' : '❌ 평문'}`);
+		  console.log(`VipUp 길이: ${word.vipup.length}자`);
+		  
+		  if (isEncrypted) {
+			try {
+			  const decrypted = VipUpEncryption.decrypt(word.vipup);
+			  console.log(`복호화된 내용:\n${decrypted}`);
+			} catch (e) {
+			  console.error('복호화 실패:', e.message);
+			}
+		  } else {
+			console.log(`평문 내용:\n${word.vipup}`);
+		  }
+		} else {
+		  console.log('VipUp 데이터 없음');
+		}
+		
+		console.log('==================\n');
+	  } catch (error) {
+		console.error('단어 확인 오류:', error);
+	  }
+	};
+
+	// VipUp 강제 재암호화 함수 (특정 단어)
+	window.reencryptVipUpForWord = async function(wordText) {
+	  if (!window.app || !window.app.dbManager || !window.VipUpEncryption) {
+		console.error('필요한 모듈이 로드되지 않았습니다');
+		return;
+	  }
+	  
+	  try {
+		const words = await app.dbManager.getWords({ word: wordText }, 1);
+		
+		if (words.length === 0) {
+		  console.log(`"${wordText}" 단어를 찾을 수 없습니다`);
+		  return;
+		}
+		
+		const word = words[0];
+		
+		if (!word.vipup) {
+		  console.log('VipUp 데이터가 없습니다');
+		  return;
+		}
+		
+		let plainText = word.vipup;
+		
+		// 이미 암호화된 경우 먼저 복호화
+		if (VipUpEncryption.isEncrypted(word.vipup)) {
+		  try {
+			plainText = VipUpEncryption.decrypt(word.vipup);
+			console.log('기존 암호화 데이터를 복호화했습니다');
+		  } catch (e) {
+			console.error('복호화 실패, 원본을 그대로 사용합니다:', e.message);
+		  }
+		}
+		
+		// 재암호화
+		const encryptedVipup = VipUpEncryption.encrypt(plainText);
+		
+		// DB 업데이트
+		await app.dbManager.updateWord(word._id, { vipup: encryptedVipup });
+		
+		console.log(`✅ "${wordText}" 단어의 VipUp을 재암호화했습니다`);
+		console.log(`원본 길이: ${plainText.length}자`);
+		console.log(`암호화 길이: ${encryptedVipup.length}자`);
+		
+	  } catch (error) {
+		console.error('재암호화 오류:', error);
+	  }
+	};
+
+	// 전체 VipUp 상태 통계
+	window.getVipUpStats = async function() {
+	  if (!window.app || !window.app.dbManager) {
+		console.error('앱이 초기화되지 않았습니다');
+		return;
+	  }
+	  
+	  try {
+		console.log('VipUp 통계 수집 중...');
+		
+		const allWords = await app.dbManager.getAllWords();
+		let stats = {
+		  total: allWords.length,
+		  hasVipup: 0,
+		  encrypted: 0,
+		  plainText: 0,
+		  empty: 0,
+		  error: 0
+		};
+		
+		for (const word of allWords) {
+		  if (word.vipup) {
+			stats.hasVipup++;
+			
+			if (word.vipup.trim() === '') {
+			  stats.empty++;
+			} else {
+			  try {
+				if (VipUpEncryption.isEncrypted(word.vipup)) {
+				  stats.encrypted++;
+				} else {
+				  stats.plainText++;
+				}
+			  } catch (e) {
+				stats.error++;
+			  }
+			}
+		  }
+		}
+		
+		console.log('\n=== VipUp 통계 ===');
+		console.log(`총 단어 수: ${stats.total}`);
+		console.log(`VipUp 있음: ${stats.hasVipup} (${(stats.hasVipup/stats.total*100).toFixed(1)}%)`);
+		console.log(`- 암호화됨: ${stats.encrypted} (${(stats.encrypted/stats.hasVipup*100).toFixed(1)}%)`);
+		console.log(`- 평문: ${stats.plainText} (${(stats.plainText/stats.hasVipup*100).toFixed(1)}%)`);
+		console.log(`- 빈 값: ${stats.empty}`);
+		console.log(`- 오류: ${stats.error}`);
+		console.log('================\n');
+		
+		return stats;
+	  } catch (error) {
+		console.error('통계 수집 오류:', error);
+		return null;
+	  }
+	};
+
+	// 개발자 콘솔 사용 가이드 출력
+	window.vipupHelp = function() {
+	  console.log(`
+	=== VipUp 암호화 관리 함수 가이드 ===
+
+	1. migrateVipUpEncryption()
+	   - 모든 평문 VipUp 데이터를 암호화합니다
+	   - 사용: await migrateVipUpEncryption()
+
+	2. debugVipUpEncryption()
+	   - 암기중 단어 5개를 샘플로 암호화 상태를 확인합니다
+	   - 사용: await debugVipUpEncryption()
+
+	3. checkVipUpForWord("단어")
+	   - 특정 단어의 VipUp 암호화 상태를 확인합니다
+	   - 사용: await checkVipUpForWord("abandon")
+
+	4. reencryptVipUpForWord("단어")
+	   - 특정 단어의 VipUp을 강제로 재암호화합니다
+	   - 사용: await reencryptVipUpForWord("abandon")
+
+	5. getVipUpStats()
+	   - 전체 VipUp 데이터의 암호화 통계를 확인합니다
+	   - 사용: await getVipUpStats()
+
+	6. vipupHelp()
+	   - 이 도움말을 다시 표시합니다
+	   
+	=================================
+  `);
+	};
+
+	// 초기화 완료 시 도움말 표시
+	console.log('💡 VipUp 암호화 관리 함수가 로드되었습니다. vipupHelp()를 입력하여 사용법을 확인하세요.');
+// Netlify 환경 확인 디버깅
+window.debugNetlifyEnv = function() {
+    console.log('=== Netlify 환경 디버그 ===');
+    console.log('현재 호스트:', window.location.hostname);
+    console.log('Netlify 환경:', window.location.hostname.includes('netlify.app'));
+    
+    if (window.NetworkManager) {
+        const nm = new NetworkManager();
+        console.log('NetworkManager Netlify 모드:', nm.isNetlifyEnvironment);
+        console.log('프록시 URL:', nm.proxyUrl);
+    }
+    
+    if (window.AirtableManager) {
+        const am = AirtableManager.getInstance();
+        console.log('AirtableManager 프록시 모드:', am.useProxy);
+    }
+    
+    console.log('=========================');
+};
+
+console.log('💡 Netlify 환경 디버깅: debugNetlifyEnv()를 입력하여 확인하세요.');
+</script>
+<script src="enhanced-loader.js"></script>
+</body>
+</html>
+	
