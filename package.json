@@ -1,0 +1,14 @@
+{
+  "name": "netlify-functions-app",
+  "version": "1.0.0",
+  "scripts": {
+    "build": "echo 'Building functions...'",
+    "postinstall": "echo 'Dependencies installed'"
+  },
+  "dependencies": {
+    "@netlify/functions": "^2.4.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
