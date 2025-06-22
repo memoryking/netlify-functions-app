@@ -1,6 +1,6 @@
 /**
- * token-validator.js - 간단한 토큰 검증 시스템
- * 타입봇에서 생성된 토큰을 검증하고 만료 시 리다이렉트
+ * token-validator.js - 개선된 토큰 검증 시스템
+ * 검증 숫자를 포함한 안전한 토큰 검증
  */
 
 (function() {
@@ -9,9 +9,6 @@
   // 토큰 검증 클래스
   class TokenValidator {
     constructor() {
-      // 타입봇의 토큰 생성과 동일한 SECRET_KEY
-      this.SECRET_KEY = 'x7K9mP2nQ5wL8bR4vT6yU3jH1gF0aE9c';
-      
       // 타입봇 URL 설정
       this.TYPEBOT_URL = 'https://typebot.co/pt-id-bl1gnoc';
       
@@ -20,51 +17,66 @@
       this.validationResult = null;
     }
     
-    // 토큰 검증 (간단한 형식)
+    // 토큰 검증 (개선된 방식)
     verifyToken(token) {
       try {
         if (!token) {
           return { valid: false, reason: '토큰이 없습니다' };
         }
         
-        // 토큰 형식: 만료시간_시크릿키
-        const parts = token.split('_');
-        
-        if (parts.length !== 2) {
+        // 토큰 형식: base64데이터_x7K9m
+        if (!token.endsWith('_x7K9m')) {
           return { valid: false, reason: '잘못된 토큰 형식입니다' };
         }
         
-        const [expiresStr, secretKey] = parts;
+        // 토큰 분리
+        const encoded = token.replace('_x7K9m', '');
         
-        // 시크릿 키 확인
-        if (secretKey !== this.SECRET_KEY) {
-          return { valid: false, reason: '유효하지 않은 토큰입니다' };
+        // Base64 디코드
+        let decoded;
+        try {
+          decoded = atob(encoded);
+        } catch (e) {
+          return { valid: false, reason: '토큰 디코드 실패' };
+        }
+        
+        // 데이터 파싱: 전화번호_만료시간_검증숫자
+        const parts = decoded.split('_');
+        
+        if (parts.length !== 3) {
+          return { valid: false, reason: '토큰 데이터가 올바르지 않습니다' };
+        }
+        
+        const [phone, expStr, checkStr] = parts;
+        const exp = parseInt(expStr);
+        const check = parseInt(checkStr);
+        
+        // 검증 숫자 확인 (변조 방지)
+        const expectedCheck = (exp * 7) % 999983;
+        if (check !== expectedCheck) {
+          return { valid: false, reason: '토큰이 변조되었습니다' };
         }
         
         // 만료 시간 확인
-        const expires = parseInt(expiresStr);
-        
-        if (isNaN(expires)) {
-          return { valid: false, reason: '토큰 형식이 올바르지 않습니다' };
-        }
-        
         const now = Date.now();
         
-        if (expires < now) {
-          const expiredDate = new Date(expires).toLocaleString('ko-KR');
+        if (exp < now) {
+          const expiredDate = new Date(exp).toLocaleString('ko-KR');
           return { 
             valid: false, 
             reason: '사용 기간이 만료되었습니다',
-            expiredAt: expiredDate
+            expiredAt: expiredDate,
+            phone: phone
           };
         }
         
         // 유효한 토큰
         return {
           valid: true,
-          expiresAt: new Date(expires).toLocaleString('ko-KR'),
-          remainingTime: expires - now,
-          remainingDays: Math.ceil((expires - now) / (24 * 60 * 60 * 1000))
+          phone: phone,
+          expiresAt: new Date(exp).toLocaleString('ko-KR'),
+          remainingTime: exp - now,
+          remainingDays: Math.ceil((exp - now) / (24 * 60 * 60 * 1000))
         };
         
       } catch (error) {
@@ -174,6 +186,14 @@
              onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 15px rgba(102, 126, 234, 0.4)'">
             타입봇으로 이동
           </button>
+          
+          ${validationResult.phone ? `
+            <p style="
+              font-size: 12px;
+              color: #9CA3AF;
+              margin: 16px 0 0;
+            ">등록된 번호: ${validationResult.phone}</p>
+          ` : ''}
         </div>
       `;
       
@@ -324,6 +344,7 @@
       }
       
       console.log('토큰 검증 성공:', {
+        phone: result.phone,
         expiresAt: result.expiresAt,
         remainingDays: result.remainingDays
       });
@@ -339,6 +360,7 @@
       if (window.app) {
         window.app.tokenValidation = {
           validated: true,
+          phone: result.phone,
           expiresAt: result.expiresAt,
           remainingDays: result.remainingDays
         };
@@ -358,7 +380,8 @@
             console.log('토큰이 만료되었습니다. 만료 화면 표시.');
             this.showExpiredScreen({
               reason: '사용 기간이 만료되었습니다',
-              expiredAt: this.validationResult.expiresAt
+              expiredAt: this.validationResult.expiresAt,
+              phone: this.validationResult.phone
             });
           }
         }
