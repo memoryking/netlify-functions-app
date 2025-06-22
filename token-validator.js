@@ -430,22 +430,33 @@
         return this.validationResult;
       }
       
-      console.log('토큰 검증 성공:', {
-        phone: result.phone,
-        expiresAt: result.expiresAt,
-        remainingDays: result.remainingDays,
-        remainingHours: result.remainingHours
-      });
-      
-      // 성공 토스트 표시 (옵션)
-      this.showSuccessToast(result);
-      
-      // 검증 성공 - URL에서 토큰 제거 (보안)
-      const newUrl = window.location.pathname + window.location.search.replace(/[?&]token=[^&]+/, '');
-      window.history.replaceState({}, document.title, newUrl);
-      
-      this.validationResult = result;
-      this.isValidated = true;
+      // 검증 성공 시 실행되는 부분
+						console.log('토큰 검증 성공:', {
+								phone: result.phone,
+								expiresAt: result.expiresAt,
+								remainingDays: result.remainingDays,
+								remainingHours: result.remainingHours
+						});
+
+						// 성공 토스트 표시 (옵션)
+						this.showSuccessToast(result);
+
+						// 검증 성공 - URL에서 토큰만 안전하게 제거
+						try {
+								const url = new URL(window.location.href);
+								url.searchParams.delete('token');
+								
+								// pushState 대신 replaceState 사용 (히스토리에 남기지 않음)
+								window.history.replaceState({}, document.title, url.toString());
+								
+								console.log('토큰이 URL에서 제거되었습니다');
+						} catch (urlError) {
+								console.error('URL 처리 오류:', urlError);
+								// URL 처리 실패해도 계속 진행
+						}
+
+						this.validationResult = result;
+						this.isValidated = true;
       
       // 성공 시 전역 app 객체에 정보 저장
       if (window.app) {
