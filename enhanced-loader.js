@@ -3,10 +3,11 @@
  * 수정: IndexedDBManager 대신 ContentBasedDBManager만 사용
  * 추가: 로딩 오버레이 기능
  * 추가: Netlify 환경 감지 및 API 프록시 지원
+ * 추가: 토큰 기반 접근 제어
  */
 
 // =========== 앱 버전 및 상수 정의 ===========
-const APP_VERSION = '2.1.0'; // 버전 업데이트
+const APP_VERSION = '2.2.0'; // 버전 업데이트 - 토큰 검증 추가
 const CACHE_BUSTER = Date.now().toString(36).substring(0, 5);
 
 // =========== 환경 감지 ===========
@@ -44,7 +45,9 @@ if (!window._initStatus) {
     completed: false,
     error: null,
     promise: null,
+    blocked: false,  // 토큰 검증 차단 플래그 추가
     modules: {
+      tokenValidator: false,  // 토큰 검증 모듈 추가
       contentSystem: false,
       indexedDB: false,
       network: false,
@@ -57,6 +60,7 @@ if (!window._initStatus) {
 } else {
   if (!window._initStatus.modules) {
     window._initStatus.modules = {
+      tokenValidator: false,  // 토큰 검증 모듈 추가
       contentSystem: false,
       indexedDB: false,
       network: false,
@@ -65,6 +69,9 @@ if (!window._initStatus) {
       utils: false,
       wordLearningApp: false
     };
+  }
+  if (window._initStatus.blocked === undefined) {
+    window._initStatus.blocked = false;  // 토큰 검증 차단 플래그 추가
   }
 }
 
@@ -426,7 +433,9 @@ function showErrorMessage(message, isRecoverable = true) {
         completed: false,
         error: null,
         promise: null,
+        blocked: false,  // 토큰 검증 차단 플래그 추가
         modules: {
+          tokenValidator: false,  // 토큰 검증 모듈 추가
           contentSystem: false,
           indexedDB: false,
           network: false,
@@ -824,13 +833,21 @@ async function loadCoreScripts() {
     return window._initStatus.promise;
   }
   
+  // 토큰 검증이 차단했는지 확인
+  if (window._initStatus && window._initStatus.blocked) {
+    console.log('토큰 검증 실패로 초기화가 차단되었습니다.');
+    return false;
+  }
+  
   if (!window._initStatus || !window._initStatus.modules) {
     window._initStatus = {
       started: false,
       completed: false,
       error: null,
       promise: null,
+      blocked: false,  // 토큰 검증 차단 플래그 추가
       modules: {
+        tokenValidator: false,  // 토큰 검증 모듈 추가
         contentSystem: false,
         indexedDB: false,
         network: false,
@@ -851,6 +868,27 @@ async function loadCoreScripts() {
       hideMainMessage();
       
       // 로딩 진행률 업데이트
+      updateLoadingProgress(5, '보안 검증 중...');
+      
+      // 0단계: 토큰 검증 스크립트 로드 및 실행
+      console.log('0단계: 토큰 검증');
+      await loadScriptOnce('token-validator.js');
+      
+      // 토큰 검증 완료 대기
+      if (window.tokenValidator) {
+        const validationResult = await window.tokenValidator.validate();
+        
+        if (!validationResult || !validationResult.valid) {
+          console.log('토큰 검증 실패, 초기화 중단');
+          window._initStatus.blocked = true;
+          hideLoadingOverlay();
+          return false;
+        }
+        
+        console.log('토큰 검증 성공, 계속 진행');
+        window._initStatus.modules.tokenValidator = true;
+      }
+      
       updateLoadingProgress(10, '기본 유틸리티 로드 중...');
       
       // 1단계: 기본 유틸리티
@@ -1323,4 +1361,4 @@ window.updateLoadingProgress = updateLoadingProgress;
 window.hideLoadingOverlay = hideLoadingOverlay;
 window.checkTypebotEnvironment = checkTypebotEnvironment;
 
-console.log('콘텐츠 기반 Enhanced Loader 로드 완료 (v2.0.9 - ContentBasedDBManager 전용)');
+console.log('콘텐츠 기반 Enhanced Loader 로드 완료 (v2.2.0 - 토큰 검증 추가)');
