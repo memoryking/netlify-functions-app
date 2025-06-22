@@ -1134,78 +1134,119 @@ async function loadCoreScripts() {
       }, 1500);
 
       // 14단계: 최종 초기화 및 깜빡임 방지
-      console.log('14단계: 최종 초기화 및 UI 안정화');
-      
-      // 전역 플래그 설정 - airtable-fix가 참조할 수 있도록
-      window._appFullyInitialized = false;
-      window._finalUpdateInProgress = false;
-      
-      setTimeout(() => {
-        // 컨테이너 준비 상태로 전환
-        const container = document.querySelector('.container');
-        if (container) {
-          container.classList.add('ready');
-          console.log('✅ 컨테이너 ready 클래스 추가');
-        }
-        
-        // 초기화 플래그 해제
-        window._skipInitialUIUpdate = false;
-        window._initialLoadComplete = true;
-        window._appFullyInitialized = true; // 전역 플래그 설정
-        
-        // 모든 로딩 클래스 제거 및 loaded 상태로 전환
-        const allStatsValues = document.querySelectorAll('.stats-value');
-        allStatsValues.forEach(element => {
-          element.classList.remove('loading');
-          element.classList.add('loaded');
-        });
-        
-        // 최종 통계 업데이트 한 번만 실행
-        if (window.app && typeof window.app.updateWordCounts === 'function') {
-          console.log('최종 통계 업데이트 실행');
-          
-          // 업데이트 진행 중 플래그 설정
-          window._finalUpdateInProgress = true;
-          
-          window.app.updateWordCounts('all', false).then(() => {
-            console.log('✅ 최종 통계 업데이트 완료');
-            window._finalUpdateInProgress = false;
-            
-            // 메인 화면이 활성화되어 있는지 확인
-            const mainScreen = document.getElementById('mainScreen');
-            if (mainScreen && mainScreen.classList.contains('active')) {
-              // 푸터 텍스트 업데이트
-              const footerText = document.querySelector('.footer-text');
-              const totalElement = document.getElementById('totalWords');
-              if (footerText && totalElement && totalElement.textContent) {
-                const totalCount = totalElement.textContent;
-                footerText.textContent = `맥락과 반복 - 전체 ${totalCount}개`;
-              }
-            }
-            
-            // 완료 이벤트 발생
-            const initCompleteEvent = new CustomEvent('appInitComplete', {
-              detail: { timestamp: Date.now() }
-            });
-            window.dispatchEvent(initCompleteEvent);
-            console.log('✅ appInitComplete 이벤트 발생');
-            
-          }).catch(err => {
-            console.error('최종 통계 업데이트 오류:', err);
-            window._finalUpdateInProgress = false;
-          });
-        } else {
-          // updateWordCounts가 없어도 완료 이벤트는 발생
-          window._finalUpdateInProgress = false;
-          
-          const initCompleteEvent = new CustomEvent('appInitComplete', {
-            detail: { timestamp: Date.now() }
-          });
-          window.dispatchEvent(initCompleteEvent);
-          console.log('✅ appInitComplete 이벤트 발생');
-        }
-        
-      }, 2500); // UIManager 초기화 후 1초 뒤 실행
+						console.log('14단계: 최종 초기화 및 UI 안정화');
+
+						// 전역 플래그 설정 - airtable-fix가 참조할 수 있도록
+						window._appFullyInitialized = false;
+						window._finalUpdateInProgress = false;
+
+						setTimeout(() => {
+								// 컨테이너 준비 상태로 전환
+								const container = document.querySelector('.container');
+								if (container) {
+										container.classList.add('ready');
+										console.log('✅ 컨테이너 ready 클래스 추가');
+								}
+								
+								// 초기화 플래그 해제
+								window._skipInitialUIUpdate = false;
+								window._initialLoadComplete = true;
+								window._appFullyInitialized = true; // 전역 플래그 설정
+								
+								// 모든 로딩 클래스 제거 및 loaded 상태로 전환
+								const allStatsValues = document.querySelectorAll('.stats-value');
+								allStatsValues.forEach(element => {
+										element.classList.remove('loading');
+										element.classList.add('loaded');
+								});
+								
+								// 최종 통계 업데이트 한 번만 실행
+								if (window.app && typeof window.app.updateWordCounts === 'function') {
+										console.log('최종 통계 업데이트 실행');
+										
+										// 업데이트 진행 중 플래그 설정
+										window._finalUpdateInProgress = true;
+										
+										window.app.updateWordCounts('all', false).then(() => {
+												console.log('✅ 최종 통계 업데이트 완료');
+												window._finalUpdateInProgress = false;
+												
+												// 메인 화면이 활성화되어 있는지 확인
+												const mainScreen = document.getElementById('mainScreen');
+												if (mainScreen && mainScreen.classList.contains('active')) {
+														// 푸터 텍스트 업데이트
+														const footerText = document.querySelector('.footer-text');
+														const totalElement = document.getElementById('totalWords');
+														if (footerText && totalElement && totalElement.textContent) {
+																const totalCount = totalElement.textContent;
+																footerText.textContent = `맥락과 반복 - 전체 ${totalCount}개`;
+														}
+												}
+												
+												// ⭐ URL 정리 - 앱 초기화가 완전히 끝난 후
+												setTimeout(() => {
+														try {
+																const currentUrl = window.location.href;
+																// urlParams가 있거나 다른 파라미터가 있는 경우
+																if (currentUrl.includes('?')) {
+																		const cleanUrl = window.location.origin + window.location.pathname;
+																		window.history.replaceState({}, document.title, cleanUrl);
+																		console.log('✅ URL 정리 완료 - 모든 파라미터 제거');
+																}
+														} catch (urlError) {
+																console.error('URL 정리 오류:', urlError);
+														}
+												}, 500); // 통계 업데이트 후 0.5초 뒤
+												
+												// 완료 이벤트 발생
+												const initCompleteEvent = new CustomEvent('appInitComplete', {
+														detail: { timestamp: Date.now() }
+												});
+												window.dispatchEvent(initCompleteEvent);
+												console.log('✅ appInitComplete 이벤트 발생');
+												
+										}).catch(err => {
+												console.error('최종 통계 업데이트 오류:', err);
+												window._finalUpdateInProgress = false;
+												
+												// ⭐ 오류가 발생해도 URL은 정리
+												setTimeout(() => {
+														try {
+																if (window.location.search) {
+																		const cleanUrl = window.location.origin + window.location.pathname;
+																		window.history.replaceState({}, document.title, cleanUrl);
+																		console.log('✅ URL 정리 완료 (오류 발생 케이스)');
+																}
+														} catch (urlError) {
+																console.error('URL 정리 오류:', urlError);
+														}
+												}, 500);
+										});
+								} else {
+										// updateWordCounts가 없어도 완료 이벤트는 발생
+										window._finalUpdateInProgress = false;
+										
+										// ⭐ updateWordCounts가 없는 경우에도 URL 정리
+										setTimeout(() => {
+												try {
+														if (window.location.search) {
+																const cleanUrl = window.location.origin + window.location.pathname;
+																window.history.replaceState({}, document.title, cleanUrl);
+																console.log('✅ URL 정리 완료 (updateWordCounts 없음)');
+														}
+												} catch (urlError) {
+														console.error('URL 정리 오류:', urlError);
+												}
+										}, 500);
+										
+										const initCompleteEvent = new CustomEvent('appInitComplete', {
+												detail: { timestamp: Date.now() }
+										});
+										window.dispatchEvent(initCompleteEvent);
+										console.log('✅ appInitComplete 이벤트 발생');
+								}
+								
+						}, 2500); // UIManager 초기화 후 1초 뒤 실행
 
       window._initStatus.completed = true;
 
