@@ -1,6 +1,6 @@
 /**
- * token-validator.js - 개선된 토큰 검증 시스템
- * 검증 숫자를 포함한 안전한 토큰 검증
+ * token-validator.js - 완성된 토큰 검증 시스템
+ * 타입봇에서 생성한 토큰을 검증하고 만료 시 접근을 차단합니다
  */
 
 (function() {
@@ -17,7 +17,18 @@
       this.validationResult = null;
     }
     
-    // 토큰 검증 (개선된 방식)
+    // Base64 디코드 함수 (브라우저 호환)
+    decodeBase64(str) {
+      try {
+        // 브라우저의 atob 함수 사용
+        return atob(str);
+      } catch (e) {
+        console.error('Base64 디코드 실패:', e);
+        return null;
+      }
+    }
+    
+    // 토큰 검증
     verifyToken(token) {
       try {
         if (!token) {
@@ -29,16 +40,16 @@
           return { valid: false, reason: '잘못된 토큰 형식입니다' };
         }
         
-        // 토큰 분리
+        // 토큰에서 _x7K9m 제거
         const encoded = token.replace('_x7K9m', '');
         
         // Base64 디코드
-        let decoded;
-        try {
-          decoded = atob(encoded);
-        } catch (e) {
+        const decoded = this.decodeBase64(encoded);
+        if (!decoded) {
           return { valid: false, reason: '토큰 디코드 실패' };
         }
+        
+        console.log('디코드된 토큰 데이터:', decoded);
         
         // 데이터 파싱: 전화번호_만료시간_검증숫자
         const parts = decoded.split('_');
@@ -51,17 +62,39 @@
         const exp = parseInt(expStr);
         const check = parseInt(checkStr);
         
+        // 숫자 유효성 검사
+        if (isNaN(exp) || isNaN(check)) {
+          return { valid: false, reason: '토큰 데이터가 손상되었습니다' };
+        }
+        
         // 검증 숫자 확인 (변조 방지)
         const expectedCheck = (exp * 7) % 999983;
         if (check !== expectedCheck) {
+          console.error('검증 숫자 불일치:', { 
+            expected: expectedCheck, 
+            actual: check,
+            exp: exp
+          });
           return { valid: false, reason: '토큰이 변조되었습니다' };
         }
         
-        // 만료 시간 확인
+        // 현재 시간
         const now = Date.now();
+        console.log('시간 비교:', {
+          now: new Date(now).toISOString(),
+          exp: new Date(exp).toISOString(),
+          diff: exp - now
+        });
         
+        // 만료 시간 확인
         if (exp < now) {
-          const expiredDate = new Date(exp).toLocaleString('ko-KR');
+          const expiredDate = new Date(exp).toLocaleString('ko-KR', {
+            year: 'numeric',
+            month: '2-digit',
+            day: '2-digit',
+            hour: '2-digit',
+            minute: '2-digit'
+          });
           return { 
             valid: false, 
             reason: '사용 기간이 만료되었습니다',
@@ -71,12 +104,24 @@
         }
         
         // 유효한 토큰
+        const remainingMs = exp - now;
+        const remainingDays = Math.ceil(remainingMs / (24 * 60 * 60 * 1000));
+        const remainingHours = Math.floor((remainingMs % (24 * 60 * 60 * 1000)) / (60 * 60 * 1000));
+        
         return {
           valid: true,
           phone: phone,
-          expiresAt: new Date(exp).toLocaleString('ko-KR'),
-          remainingTime: exp - now,
-          remainingDays: Math.ceil((exp - now) / (24 * 60 * 60 * 1000))
+          expiresAt: new Date(exp).toLocaleString('ko-KR', {
+            year: 'numeric',
+            month: '2-digit',
+            day: '2-digit',
+            hour: '2-digit',
+            minute: '2-digit'
+          }),
+          remainingTime: remainingMs,
+          remainingDays: remainingDays,
+          remainingHours: remainingHours,
+          remainingText: `${remainingDays}일 ${remainingHours}시간`
         };
         
       } catch (error) {
@@ -154,7 +199,7 @@
             color: #6B7280;
             line-height: 1.5;
             margin: 0 0 8px;
-          ">${validationResult.reason || '서비스 이용 기간이 종료되었습니다.'}</p>
+          ">서비스 이용 기간이 종료되었습니다.</p>
           
           ${validationResult.expiredAt ? `
             <p style="
@@ -293,11 +338,53 @@
       document.body.appendChild(deniedDiv);
     }
     
+    // 성공 시 토스트 메시지 표시 (옵션)
+    showSuccessToast(validationResult) {
+      const toast = document.createElement('div');
+      toast.style.cssText = `
+        position: fixed;
+        bottom: 20px;
+        right: 20px;
+        background: #10B981;
+        color: white;
+        padding: 16px 24px;
+        border-radius: 8px;
+        font-size: 14px;
+        font-weight: 500;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        z-index: 10000;
+        opacity: 0;
+        transform: translateY(20px);
+        transition: all 0.3s ease;
+      `;
+      
+      toast.innerHTML = `
+        ✓ 인증 성공 | 남은 기간: ${validationResult.remainingText}
+      `;
+      
+      document.body.appendChild(toast);
+      
+      // 애니메이션
+      setTimeout(() => {
+        toast.style.opacity = '1';
+        toast.style.transform = 'translateY(0)';
+      }, 100);
+      
+      // 3초 후 제거
+      setTimeout(() => {
+        toast.style.opacity = '0';
+        toast.style.transform = 'translateY(20px)';
+        setTimeout(() => toast.remove(), 300);
+      }, 3000);
+    }
+    
     // URL에서 토큰 추출
     extractTokenFromUrl() {
       try {
         const urlParams = new URLSearchParams(window.location.search);
-        return urlParams.get('token');
+        const token = urlParams.get('token');
+        console.log('URL에서 추출한 토큰:', token);
+        return token;
       } catch (error) {
         console.error('URL 파싱 오류:', error);
         return null;
@@ -346,8 +433,12 @@
       console.log('토큰 검증 성공:', {
         phone: result.phone,
         expiresAt: result.expiresAt,
-        remainingDays: result.remainingDays
+        remainingDays: result.remainingDays,
+        remainingHours: result.remainingHours
       });
+      
+      // 성공 토스트 표시 (옵션)
+      this.showSuccessToast(result);
       
       // 검증 성공 - URL에서 토큰 제거 (보안)
       const newUrl = window.location.pathname + window.location.search.replace(/[?&]token=[^&]+/, '');
@@ -362,19 +453,28 @@
           validated: true,
           phone: result.phone,
           expiresAt: result.expiresAt,
-          remainingDays: result.remainingDays
+          remainingDays: result.remainingDays,
+          remainingHours: result.remainingHours
         };
       }
       
       return result;
     }
     
-    // 주기적인 만료 체크 (옵션)
+    // 주기적인 만료 체크 (5분마다)
     startPeriodicCheck(intervalMinutes = 5) {
+      console.log(`주기적 토큰 체크 시작 (${intervalMinutes}분마다)`);
+      
       setInterval(() => {
         if (this.validationResult && this.validationResult.valid) {
           const now = Date.now();
           const expiresTimestamp = new Date(this.validationResult.expiresAt).getTime();
+          
+          console.log('주기적 체크:', {
+            now: new Date(now).toISOString(),
+            expires: new Date(expiresTimestamp).toISOString(),
+            isExpired: now > expiresTimestamp
+          });
           
           if (now > expiresTimestamp) {
             console.log('토큰이 만료되었습니다. 만료 화면 표시.');
@@ -386,6 +486,34 @@
           }
         }
       }, intervalMinutes * 60 * 1000);
+    }
+    
+    // 남은 시간 정보 가져오기 (개발자 도구용)
+    getRemainingTime() {
+      if (!this.validationResult || !this.validationResult.valid) {
+        return null;
+      }
+      
+      const now = Date.now();
+      const exp = new Date(this.validationResult.expiresAt).getTime();
+      const remaining = exp - now;
+      
+      if (remaining <= 0) {
+        return { expired: true };
+      }
+      
+      const days = Math.floor(remaining / (24 * 60 * 60 * 1000));
+      const hours = Math.floor((remaining % (24 * 60 * 60 * 1000)) / (60 * 60 * 1000));
+      const minutes = Math.floor((remaining % (60 * 60 * 1000)) / (60 * 1000));
+      
+      return {
+        expired: false,
+        days: days,
+        hours: hours,
+        minutes: minutes,
+        totalMs: remaining,
+        text: `${days}일 ${hours}시간 ${minutes}분`
+      };
     }
   }
   
@@ -415,5 +543,10 @@
       window._initStatus.blocked = true;
     }
   });
+  
+  // 개발자 도구 명령어
+  console.log('💡 토큰 검증 시스템 로드 완료');
+  console.log('남은 시간 확인: tokenValidator.getRemainingTime()');
+  console.log('검증 결과 확인: tokenValidator.validationResult');
   
 })();
