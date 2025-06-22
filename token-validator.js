@@ -1,5 +1,5 @@
 /**
- * token-validator.js - 토큰 기반 접근 제어 시스템
+ * token-validator.js - 간단한 토큰 검증 시스템
  * 타입봇에서 생성된 토큰을 검증하고 만료 시 리다이렉트
  */
 
@@ -9,7 +9,7 @@
   // 토큰 검증 클래스
   class TokenValidator {
     constructor() {
-      // ⚠️ 중요: 이 SECRET_KEY를 복잡한 값으로 변경하세요!
+      // 타입봇의 토큰 생성과 동일한 SECRET_KEY
       this.SECRET_KEY = 'x7K9mP2nQ5wL8bR4vT6yU3jH1gF0aE9c';
       
       // 타입봇 URL 설정
@@ -20,69 +20,51 @@
       this.validationResult = null;
     }
     
-    // 간단한 해시 함수
-    simpleHash(str) {
-      let hash = 0;
-      for (let i = 0; i < str.length; i++) {
-        const char = str.charCodeAt(i);
-        hash = ((hash << 5) - hash) + char;
-        hash = hash & hash;
-      }
-      return Math.abs(hash).toString(36);
-    }
-    
-    // 토큰 검증
+    // 토큰 검증 (간단한 형식)
     verifyToken(token) {
       try {
         if (!token) {
           return { valid: false, reason: '토큰이 없습니다' };
         }
         
-        const [data, hash] = token.split('.');
+        // 토큰 형식: 만료시간_시크릿키
+        const parts = token.split('_');
         
-        if (!data || !hash) {
+        if (parts.length !== 2) {
           return { valid: false, reason: '잘못된 토큰 형식입니다' };
         }
         
-        // 해시 검증
-        const expectedHash = this.simpleHash(data + this.SECRET_KEY);
-        if (hash !== expectedHash) {
-          return { valid: false, reason: '토큰이 변조되었습니다' };
-        }
+        const [expiresStr, secretKey] = parts;
         
-        // 데이터 디코드
-        let decoded;
-        try {
-          decoded = JSON.parse(atob(data));
-        } catch (e) {
-          return { valid: false, reason: '토큰 디코드 실패' };
-        }
-        
-        // 필수 필드 확인
-        if (!decoded.phone || !decoded.expires) {
-          return { valid: false, reason: '필수 정보가 누락되었습니다' };
+        // 시크릿 키 확인
+        if (secretKey !== this.SECRET_KEY) {
+          return { valid: false, reason: '유효하지 않은 토큰입니다' };
         }
         
         // 만료 시간 확인
+        const expires = parseInt(expiresStr);
+        
+        if (isNaN(expires)) {
+          return { valid: false, reason: '토큰 형식이 올바르지 않습니다' };
+        }
+        
         const now = Date.now();
-        if (decoded.expires < now) {
-          const expiredDate = new Date(decoded.expires).toLocaleString('ko-KR');
+        
+        if (expires < now) {
+          const expiredDate = new Date(expires).toLocaleString('ko-KR');
           return { 
             valid: false, 
             reason: '사용 기간이 만료되었습니다',
-            expiredAt: expiredDate,
-            phone: decoded.phone
+            expiredAt: expiredDate
           };
         }
         
         // 유효한 토큰
         return {
           valid: true,
-          phone: decoded.phone,
-          contents: decoded.contents,
-          validDays: decoded.validDays || 3,
-          expiresAt: new Date(decoded.expires).toLocaleString('ko-KR'),
-          remainingTime: decoded.expires - now
+          expiresAt: new Date(expires).toLocaleString('ko-KR'),
+          remainingTime: expires - now,
+          remainingDays: Math.ceil((expires - now) / (24 * 60 * 60 * 1000))
         };
         
       } catch (error) {
@@ -192,14 +174,6 @@
              onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 15px rgba(102, 126, 234, 0.4)'">
             타입봇으로 이동
           </button>
-          
-          ${validationResult.phone ? `
-            <p style="
-              font-size: 12px;
-              color: #9CA3AF;
-              margin: 16px 0 0;
-            ">등록된 번호: ${validationResult.phone}</p>
-          ` : ''}
         </div>
       `;
       
@@ -330,6 +304,8 @@
         return this.validationResult;
       }
       
+      console.log('검증할 토큰:', token);
+      
       // 토큰 검증
       const result = this.verifyToken(decodeURIComponent(token));
       
@@ -348,10 +324,8 @@
       }
       
       console.log('토큰 검증 성공:', {
-        phone: result.phone,
-        contents: result.contents,
-        validDays: result.validDays,
-        expiresAt: result.expiresAt
+        expiresAt: result.expiresAt,
+        remainingDays: result.remainingDays
       });
       
       // 검증 성공 - URL에서 토큰 제거 (보안)
@@ -365,10 +339,8 @@
       if (window.app) {
         window.app.tokenValidation = {
           validated: true,
-          phone: result.phone,
-          contents: result.contents,
-          validDays: result.validDays,
-          expiresAt: result.expiresAt
+          expiresAt: result.expiresAt,
+          remainingDays: result.remainingDays
         };
       }
       
@@ -386,8 +358,7 @@
             console.log('토큰이 만료되었습니다. 만료 화면 표시.');
             this.showExpiredScreen({
               reason: '사용 기간이 만료되었습니다',
-              expiredAt: this.validationResult.expiresAt,
-              phone: this.validationResult.phone
+              expiredAt: this.validationResult.expiresAt
             });
           }
         }
