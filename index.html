@@ -255,6 +255,55 @@
     </div>
 
 <!-- 스크립트 -->
+// index.html의 첫 번째 <script> 태그 바로 다음에 추가
+<script>
+// ===== URL 파라미터 보존 코드 (가장 먼저 실행) =====
+(function() {
+  console.log('URL 파라미터 보존 시작...');
+  
+  // 현재 URL의 모든 파라미터 파싱
+  const urlParams = new URLSearchParams(window.location.search);
+  const allParams = {};
+  
+  // 모든 파라미터 저장
+  for (const [key, value] of urlParams.entries()) {
+    allParams[key] = value;
+    console.log(`파라미터 저장: ${key} = ${value.substring(0, 50)}...`);
+  }
+  
+  // urlParams 파라미터가 있으면 내부 파싱
+  if (allParams.urlParams) {
+    console.log('urlParams 내부 파싱...');
+    const innerParams = {};
+    const pairs = allParams.urlParams.split('&');
+    
+    for (const pair of pairs) {
+      const [key, ...valueParts] = pair.split('=');
+      if (key && valueParts.length > 0) {
+        const value = valueParts.join('=');
+        innerParams[key] = decodeURIComponent(value);
+        console.log(`내부 파라미터: ${key} = ${innerParams[key].substring(0, 50)}...`);
+      }
+    }
+    
+    // 내부 파라미터를 메인 객체에 병합
+    Object.assign(allParams, innerParams);
+  }
+  
+  // 전역 객체에 저장 (아직 app 객체가 없으므로 임시 객체 사용)
+  window._originalUrlParams = { ...allParams };
+  
+  // 로컬 스토리지에도 백업
+  try {
+    localStorage.setItem('originalUrlParams', JSON.stringify(allParams));
+    console.log('URL 파라미터 로컬 스토리지 저장 완료');
+  } catch (e) {
+    console.error('파라미터 저장 실패:', e);
+  }
+  
+  console.log('보존된 파라미터:', allParams);
+})();
+</script>
 <script>
 // 다운로드 오버레이 관련 전역 함수들
 window.showDownloadOverlay = function(progress = 0) {
@@ -2730,7 +2779,10 @@ class AirtableManager {
 			window.app = {
 				initialized: false,
 				userPhone: cleanPhone,
-				type: type
+				type: type,
+				// URL 파라미터 추가
+				urlParams: window._originalUrlParams || {},
+				originalUrlParams: window._originalUrlParams || {}
 			};
 			
 			// 4. ⭐ ContentBasedDBManager 사용 (IndexedDBManager 대신)
