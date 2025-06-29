@@ -178,139 +178,124 @@
       };
 
       // 개선된 URL 파라미터 파싱 함수
-      function parseUrlParams() {
-        try {
-          console.log('=== URL 파라미터 파싱 시작 ===');
-          
-          // 1. 현재 URL 정보 로그
-          const fullUrl = window.location.href;
-          const search = window.location.search;
-          console.log('전체 URL:', fullUrl);
-          console.log('검색 문자열:', search);
-          
-          if (!search) {
-            console.log('검색 문자열이 없음');
-            return {};
-          }
-          
-          // 2. URLSearchParams로 직접 파싱
-          const searchParams = new URLSearchParams(search);
-          const params = {};
-          
-          // 3. 모든 파라미터 추출
-          for (const [key, value] of searchParams.entries()) {
-            params[key] = value;
-            console.log(`파라미터: ${key} = ${value.substring(0, 50)}...`);
-          }
-          
-          // 4. urlParams가 있으면 추가 파싱
-          if (params.urlParams) {
-            console.log('urlParams 발견, 추가 파싱 시도');
-            
-            try {
-              // urlParams 값 파싱 (쿼리스트링 형태)
-              const innerParamsStr = params.urlParams;
-              const innerParams = {};
-              
-              // & 기준으로 분리
-              const pairs = innerParamsStr.split('&');
-              
-              for (const pair of pairs) {
-                const [key, ...valueParts] = pair.split('=');
-                if (key && valueParts.length > 0) {
-                  const value = valueParts.join('='); // = 가 포함된 값 처리
-                  innerParams[key] = decodeURIComponent(value);
-                  console.log(`내부 파라미터: ${key} = ${innerParams[key].substring(0, 50)}...`);
-                }
-              }
-              
-              // 내부 파라미터를 메인 파라미터로 병합
-              Object.assign(params, innerParams);
-              
-              // urlParams 자체는 제거
-              delete params.urlParams;
-              
-            } catch (innerError) {
-              console.error('urlParams 파싱 오류:', innerError);
-            }
-          }
-          
-          // 5. 부모 창에서 파라미터 가져오기 시도
-          if (window.opener && Object.keys(params).length === 0) {
-            console.log('부모 창에서 파라미터 가져오기 시도');
-            
-            try {
-              // 부모 창의 URL 파라미터 확인
-              const parentUrl = window.opener.location.href;
-              const parentUrlObj = new URL(parentUrl);
-              const parentParams = new URLSearchParams(parentUrlObj.search);
-              
-              // 부모 창의 파라미터 복사
-              for (const [key, value] of parentParams.entries()) {
-                params[key] = decodeURIComponent(value);
-              }
-              
-              // 부모 창의 전역 변수에서도 확인
-              if (window.opener.app && window.opener.app.urlParams) {
-                Object.assign(params, window.opener.app.urlParams);
-              }
-            } catch (parentError) {
-              console.error('부모 창 파라미터 접근 오류:', parentError);
-            }
-          }
-          
-          // 6. 파라미터 유효성 검사 및 정리
-          console.log('=== 최종 파싱된 파라미터 ===');
-          for (const [key, value] of Object.entries(params)) {
-            if (value === 'null' || value === 'undefined' || value === '') {
-              console.warn(`파라미터 ${key}의 값이 유효하지 않음:`, value);
-              delete params[key];
-            } else {
-              console.log(`${key}: ${typeof value === 'string' && value.length > 50 ? value.substring(0, 50) + '...' : value}`);
-            }
-          }
-          console.log('========================');
-          
-          // 7. 전역 app 객체에 저장
-          app.urlParams = params;
-          
-          // 8. 로컬 스토리지에도 저장
-          try {
-            localStorage.setItem('appUrlParams', JSON.stringify(params));
-          } catch (e) {
-            console.warn('로컬 스토리지 저장 실패:', e);
-          }
-          
-          return params;
-          
-        } catch (error) {
-          console.error('URL 파싱 오류:', error);
-          return {};
-        }
-      }
+		function parseUrlParams() {
+		  try {
+			console.log('=== URL 파라미터 파싱 시작 ===');
+			
+			const params = {};
+			
+			// 1. 부모 창에서 저장된 파라미터 가져오기 (최우선)
+			if (window.opener && !window.opener.closed) {
+			  console.log('부모 창에서 파라미터 확인...');
+			  
+			  // 부모 창의 저장된 원본 파라미터 확인
+			  if (window.opener._originalUrlParams) {
+				console.log('부모 창의 _originalUrlParams 발견');
+				Object.assign(params, window.opener._originalUrlParams);
+			  } else if (window.opener.app && window.opener.app.originalUrlParams) {
+				console.log('부모 창의 app.originalUrlParams 발견');
+				Object.assign(params, window.opener.app.originalUrlParams);
+			  }
+			  
+			  // 로컬 스토리지에서도 확인
+			  try {
+				const storedParams = window.opener.localStorage.getItem('originalUrlParams');
+				if (storedParams) {
+				  const parsed = JSON.parse(storedParams);
+				  console.log('부모 창 로컬 스토리지에서 파라미터 발견');
+				  Object.assign(params, parsed);
+				}
+			  } catch (e) {
+				console.log('부모 창 로컬 스토리지 접근 실패:', e);
+			  }
+			}
+			
+			// 2. 현재 창의 URL 파라미터 확인 (params가 비어있을 때만)
+			if (Object.keys(params).length === 0) {
+			  const search = window.location.search;
+			  console.log('현재 창 검색 문자열:', search);
+			  
+			  if (search) {
+				const searchParams = new URLSearchParams(search);
+				
+				// 모든 파라미터 추출
+				for (const [key, value] of searchParams.entries()) {
+				  params[key] = value;
+				}
+				
+				// urlParams가 있으면 내부 파싱
+				if (params.urlParams && params.urlParams.trim() !== '') {
+				  console.log('urlParams 내부 파싱...');
+				  const innerParams = {};
+				  const pairs = params.urlParams.split('&');
+				  
+				  for (const pair of pairs) {
+					const [key, ...valueParts] = pair.split('=');
+					if (key && valueParts.length > 0) {
+					  const value = valueParts.join('=');
+					  innerParams[key] = decodeURIComponent(value);
+					}
+				  }
+				  
+				  Object.assign(params, innerParams);
+				  delete params.urlParams;
+				}
+			  }
+			}
+			
+			// 3. 파라미터 유효성 검사
+			console.log('=== 최종 파싱된 파라미터 ===');
+			const cleanParams = {};
+			for (const [key, value] of Object.entries(params)) {
+			  if (value && value !== 'null' && value !== 'undefined' && value !== '') {
+				cleanParams[key] = value;
+				console.log(`${key}: ${typeof value === 'string' && value.length > 50 ? value.substring(0, 50) + '...' : value}`);
+			  }
+			}
+			console.log('========================');
+			
+			// 4. 저장
+			app.urlParams = cleanParams;
+			
+			// 로컬 스토리지에 저장
+			try {
+			  localStorage.setItem('difficultUrlParams', JSON.stringify(cleanParams));
+			} catch (e) {
+			  console.warn('로컬 스토리지 저장 실패:', e);
+			}
+			
+			return cleanParams;
+			
+		  } catch (error) {
+			console.error('URL 파싱 오류:', error);
+			return {};
+		  }
+		}
 
       // 파라미터 가져오기 헬퍼 함수
-      function getUrlParams() {
-        // 1. 전역 변수에서 확인
-        if (app.urlParams && Object.keys(app.urlParams).length > 0) {
-          return app.urlParams;
-        }
-        
-        // 2. 로컬 스토리지에서 확인
-        try {
-          const stored = localStorage.getItem('appUrlParams');
-          if (stored) {
-            const parsed = JSON.parse(stored);
-            app.urlParams = parsed;
-            return parsed;
-          }
-        } catch (e) {
-          console.error('로컬 스토리지 파라미터 로드 오류:', e);
-        }
-        
-        // 3. URL에서 다시 파싱
-        return parseUrlParams();
-      }
+		function getUrlParams() {
+		  // 1. 이미 파싱된 파라미터가 있으면 사용
+		  if (app.urlParams && Object.keys(app.urlParams).length > 0) {
+			return app.urlParams;
+		  }
+		  
+		  // 2. 로컬 스토리지 확인
+		  try {
+			const stored = localStorage.getItem('difficultUrlParams');
+			if (stored) {
+			  const parsed = JSON.parse(stored);
+			  if (parsed && Object.keys(parsed).length > 0) {
+				app.urlParams = parsed;
+				return parsed;
+			  }
+			}
+		  } catch (e) {
+			console.error('로컬 스토리지 파라미터 로드 오류:', e);
+		  }
+		  
+		  // 3. 다시 파싱 시도
+		  return parseUrlParams();
+		}
 
       // Netlify 환경에서 API 키 가져오기
       async function getAirtableApiKey() {
