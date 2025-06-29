@@ -125,7 +125,8 @@
         loading: true,
         error: null,
         status: "초기화",
-        airtableLoading: false
+        airtableLoading: false,
+        urlParams: {} // URL 파라미터 저장
       };
 
       // 요소 직접 접근
@@ -189,48 +190,141 @@
           
           if (!search) {
             console.log('검색 문자열이 없음');
-            return new URLSearchParams();
+            return {};
           }
           
-          // 2. urlParams 파라미터 확인
-          const directParams = new URLSearchParams(search);
-          const urlParamsValue = directParams.get('urlParams');
+          // 2. URLSearchParams로 직접 파싱
+          const searchParams = new URLSearchParams(search);
+          const params = {};
           
-          if (urlParamsValue) {
-            console.log('urlParams 발견:', urlParamsValue.substring(0, 100) + '...');
+          // 3. 모든 파라미터 추출
+          for (const [key, value] of searchParams.entries()) {
+            params[key] = value;
+            console.log(`파라미터: ${key} = ${value.substring(0, 50)}...`);
+          }
+          
+          // 4. urlParams가 있으면 추가 파싱
+          if (params.urlParams) {
+            console.log('urlParams 발견, 추가 파싱 시도');
             
             try {
-              const decodedParams = decodeURIComponent(urlParamsValue);
-              console.log('디코딩된 파라미터:', decodedParams.substring(0, 100) + '...');
+              // urlParams 값 파싱 (쿼리스트링 형태)
+              const innerParamsStr = params.urlParams;
+              const innerParams = {};
               
-              const finalParams = new URLSearchParams(decodedParams);
+              // & 기준으로 분리
+              const pairs = innerParamsStr.split('&');
               
-              // 파라미터 확인 로그
-              console.log('최종 파라미터 확인:');
-              for (const [key, value] of finalParams.entries()) {
-                if (key.includes('airtable')) {
-                  console.log(`- ${key}: ${value === 'null' ? 'NULL 값!' : (value ? '값 존재' : '값 없음')}`);
+              for (const pair of pairs) {
+                const [key, ...valueParts] = pair.split('=');
+                if (key && valueParts.length > 0) {
+                  const value = valueParts.join('='); // = 가 포함된 값 처리
+                  innerParams[key] = decodeURIComponent(value);
+                  console.log(`내부 파라미터: ${key} = ${innerParams[key].substring(0, 50)}...`);
                 }
               }
               
-              return finalParams;
-            } catch (decodeError) {
-              console.error('디코딩 오류:', decodeError);
-              return new URLSearchParams();
+              // 내부 파라미터를 메인 파라미터로 병합
+              Object.assign(params, innerParams);
+              
+              // urlParams 자체는 제거
+              delete params.urlParams;
+              
+            } catch (innerError) {
+              console.error('urlParams 파싱 오류:', innerError);
             }
           }
           
-          // 3. 직접 파라미터 파싱
-          console.log('직접 파라미터 파싱 시도');
-          const cleanSearch = search.startsWith('?') ? search.substring(1) : search;
-          return new URLSearchParams(cleanSearch);
+          // 5. 부모 창에서 파라미터 가져오기 시도
+          if (window.opener && Object.keys(params).length === 0) {
+            console.log('부모 창에서 파라미터 가져오기 시도');
+            
+            try {
+              // 부모 창의 URL 파라미터 확인
+              const parentUrl = window.opener.location.href;
+              const parentUrlObj = new URL(parentUrl);
+              const parentParams = new URLSearchParams(parentUrlObj.search);
+              
+              // 부모 창의 파라미터 복사
+              for (const [key, value] of parentParams.entries()) {
+                params[key] = decodeURIComponent(value);
+              }
+              
+              // 부모 창의 전역 변수에서도 확인
+              if (window.opener.app && window.opener.app.urlParams) {
+                Object.assign(params, window.opener.app.urlParams);
+              }
+            } catch (parentError) {
+              console.error('부모 창 파라미터 접근 오류:', parentError);
+            }
+          }
+          
+          // 6. 파라미터 유효성 검사 및 정리
+          console.log('=== 최종 파싱된 파라미터 ===');
+          for (const [key, value] of Object.entries(params)) {
+            if (value === 'null' || value === 'undefined' || value === '') {
+              console.warn(`파라미터 ${key}의 값이 유효하지 않음:`, value);
+              delete params[key];
+            } else {
+              console.log(`${key}: ${typeof value === 'string' && value.length > 50 ? value.substring(0, 50) + '...' : value}`);
+            }
+          }
+          console.log('========================');
+          
+          // 7. 전역 app 객체에 저장
+          app.urlParams = params;
+          
+          // 8. 로컬 스토리지에도 저장
+          try {
+            localStorage.setItem('appUrlParams', JSON.stringify(params));
+          } catch (e) {
+            console.warn('로컬 스토리지 저장 실패:', e);
+          }
+          
+          return params;
           
         } catch (error) {
           console.error('URL 파싱 오류:', error);
-          return new URLSearchParams();
-        } finally {
-          console.log('=== URL 파라미터 파싱 완료 ===');
+          return {};
         }
+      }
+
+      // 파라미터 가져오기 헬퍼 함수
+      function getUrlParams() {
+        // 1. 전역 변수에서 확인
+        if (app.urlParams && Object.keys(app.urlParams).length > 0) {
+          return app.urlParams;
+        }
+        
+        // 2. 로컬 스토리지에서 확인
+        try {
+          const stored = localStorage.getItem('appUrlParams');
+          if (stored) {
+            const parsed = JSON.parse(stored);
+            app.urlParams = parsed;
+            return parsed;
+          }
+        } catch (e) {
+          console.error('로컬 스토리지 파라미터 로드 오류:', e);
+        }
+        
+        // 3. URL에서 다시 파싱
+        return parseUrlParams();
+      }
+
+      // Netlify 환경에서 API 키 가져오기
+      async function getAirtableApiKey() {
+        // Netlify 환경에서는 환경 변수 사용 (프록시가 처리)
+        if (isNetlifyEnvironment) {
+          console.log('Netlify 환경: 프록시가 API 키 처리');
+          return null; // 프록시가 알아서 처리
+        }
+        
+        // 개발 환경에서는 별도로 API 키를 설정해야 함
+        // 여기에 실제 에어테이블 API 키를 설정하거나
+        // 부모 창에서 가져오는 로직 추가 가능
+        console.warn('에어테이블 API 키가 설정되지 않았습니다');
+        return null;
       }
 
       // 토스트 메시지 표시
@@ -757,47 +851,30 @@
           showToast('에어테이블에서 추가 정보를 로드하는 중...', 'info');
           
           // URL 파라미터 가져오기
-          const params = parseUrlParams();
+          const params = getUrlParams();
           
           // 필수 파라미터 확인
-          const airtableApiKey = params.get('airtable_apikey');
-          const airtableContentsDB = params.get('airtable_contents_DB');
-          const airtableContentsTable = params.get('airtable_contents_table');
+          const airtableApiKey = await getAirtableApiKey();
+          const airtableContentsDB = params.airtable_contents_DB;
+          const airtableContentsTable = params.airtable_contents_table;
           
           console.log('=== 에어테이블 파라미터 상세 확인 ===');
           console.log('Netlify 환경:', isNetlifyEnvironment);
-          console.log('API 키:', {
-            존재: !!airtableApiKey,
-            타입: typeof airtableApiKey,
-            길이: airtableApiKey ? airtableApiKey.length : 0,
-            값: airtableApiKey ? `${airtableApiKey.substring(0, 15)}...` : 'null',
-            null체크: airtableApiKey === 'null'
-          });
-          console.log('콘텐츠 DB:', {
-            존재: !!airtableContentsDB,
-            타입: typeof airtableContentsDB,
-            값: airtableContentsDB ? `${airtableContentsDB.substring(0, 40)}...` : 'null',
-            null체크: airtableContentsDB === 'null'
-          });
-          console.log('콘텐츠 테이블:', {
-            존재: !!airtableContentsTable,
-            값: airtableContentsTable || 'null',
-            null체크: airtableContentsTable === 'null'
-          });
+          console.log('API 키:', isNetlifyEnvironment ? '프록시 사용' : (airtableApiKey ? '설정됨' : '없음'));
+          console.log('콘텐츠 DB:', airtableContentsDB);
+          console.log('콘텐츠 테이블:', airtableContentsTable);
           console.log('=======================================');
           
           // Netlify 환경이 아닐 때만 API 키 체크
-          if (!isNetlifyEnvironment) {
-            if (!airtableApiKey || airtableApiKey === 'null' || airtableApiKey === 'undefined' || airtableApiKey.length < 10) {
-              throw new Error(`에어테이블 API 키가 유효하지 않습니다. (값: ${airtableApiKey})`);
-            }
+          if (!isNetlifyEnvironment && !airtableApiKey) {
+            throw new Error('에어테이블 API 키가 없습니다');
           }
           
-          if (!airtableContentsDB || airtableContentsDB === 'null' || airtableContentsDB === 'undefined' || !airtableContentsDB.startsWith('https://')) {
+          if (!airtableContentsDB || !airtableContentsDB.startsWith('https://')) {
             throw new Error(`에어테이블 콘텐츠 DB URL이 유효하지 않습니다. (값: ${airtableContentsDB})`);
           }
           
-          if (!airtableContentsTable || airtableContentsTable === 'null' || airtableContentsTable === 'undefined') {
+          if (!airtableContentsTable) {
             throw new Error(`에어테이블 콘텐츠 테이블명이 유효하지 않습니다. (값: ${airtableContentsTable})`);
           }
           
@@ -1141,6 +1218,10 @@
         try {
           // 로딩 상태 표시
           updateLoadingState(true, "초기화 중...");
+          
+          // URL 파라미터 파싱
+          parseUrlParams();
+          console.log('파싱된 URL 파라미터:', app.urlParams);
           
           // VipUpEncryption 클래스 로드 대기
           if (!window.VipUpEncryption && window.opener && window.opener.VipUpEncryption) {
