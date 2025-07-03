@@ -850,30 +850,35 @@ class LongTermQMemoryMode extends BaseQMemoryMode {
         return true;
     }
 
-    // LongTermQMemoryMode의 loadWords 메서드를 다음과 같이 수정하세요:
-
 	async loadWords() {
 		if (this.isLoading) return [];
 		
 		this.isLoading = true;
 		try {
-			// 한국 시간 기준으로 오늘 날짜 가져오기
+			// ✅ dbManager 확인 추가
+			if (!this.dbManager && window.app && window.app.dbManager) {
+				this.dbManager = window.app.dbManager;
+			}
+			
+			if (!this.dbManager) {
+				throw new Error('dbManager가 없습니다');
+			}
+			
 			const oneDayAgoTime = window.KoreanTimeUtil ? 
 				window.KoreanTimeUtil.getTodayISOString() : 
 				getTodayISOString();
 			
 			console.log('[LongTerm] 오늘 날짜 기준시간:', oneDayAgoTime);
 			
-			// ContentBasedDBManager는 복잡한 쿼리를 지원하지 않으므로
-			// 먼저 장기기억 단어만 가져온 후 수동으로 필터링
+			// ✅ 복잡한 쿼리 대신 단순 필터 사용
 			const filter = {
 				isStudied: '1',
 				known_2: '2'
 			};
 			
-			console.log('[LongTerm] 1차 필터:', filter);
+			console.log('[LongTerm] 필터:', filter);
 			
-			// 장기기억 단어 모두 가져오기
+			// ✅ 모든 장기기억 단어 가져오기
 			const allLongTermWords = await this.dbManager.getWords(
 				filter,
 				0, // limit 0 = 모든 단어
@@ -882,18 +887,12 @@ class LongTermQMemoryMode extends BaseQMemoryMode {
 			
 			console.log('[LongTerm] 전체 장기기억 단어 수:', allLongTermWords.length);
 			
-			// 날짜 필터링을 수동으로 수행
+			// ✅ 수동으로 날짜 필터링
 			const words = allLongTermWords.filter(word => {
-				// studiedDate가 오늘 0시보다 이전인 단어만
 				return word.studiedDate && word.studiedDate < oneDayAgoTime;
 			});
 			
-			console.log('[LongTerm] 날짜 필터링 후 단어 수:', words.length);
-			
-			if (words.length > 0) {
-				console.log('[LongTerm] 첫 단어:', words[0].content, words[0].studiedDate);
-				console.log('[LongTerm] 마지막 단어:', words[words.length-1].content, words[words.length-1].studiedDate);
-			}
+			console.log('[LongTerm] 로드된 단어 수:', words.length);
 			
 			this.words = words;
 			this.currentIndex = 0;
@@ -905,12 +904,6 @@ class LongTermQMemoryMode extends BaseQMemoryMode {
 				this.meanings.push(word.meaning || '');
 				this.get_ids.push(word._id);
 				this.studiedDates.push(word.studiedDate || '');
-			});
-			
-			console.log('[LongTerm Words]', {
-				count: this.words.length,
-				first: this.words[0]?.content,
-				last: this.words[this.words.length - 1]?.content
 			});
 			
 			return this.words;
