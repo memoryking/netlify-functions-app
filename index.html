@@ -850,90 +850,72 @@ class LongTermQMemoryMode extends BaseQMemoryMode {
         return true;
     }
 
-    async loadWords() {
+    // LongTermQMemoryMode의 loadWords 메서드를 다음과 같이 수정하세요:
+
+	async loadWords() {
 		if (this.isLoading) return [];
 		
 		this.isLoading = true;
 		try {
 			// 한국 시간 기준으로 오늘 날짜 가져오기
-			let oneDayAgoTime;
-			
-			// 수정된 부분: 올바른 날짜 계산
-			if (window.KoreanTimeUtil && typeof window.KoreanTimeUtil.getTodayISOString === 'function') {
-				oneDayAgoTime = window.KoreanTimeUtil.getTodayISOString();
-			} else if (typeof window.getTodayISOString === 'function') {
-				oneDayAgoTime = window.getTodayISOString();
-			} else {
-				// 폴백: 직접 계산 (korean-time-util.js가 로드되지 않은 경우)
-				console.warn('[LongTerm] KoreanTimeUtil을 사용할 수 없어 직접 계산합니다');
-				
-				const now = new Date();
-				try {
-					// toLocaleString을 사용한 정확한 계산
-					const koreanDateStr = now.toLocaleString("en-US", {
-						timeZone: "Asia/Seoul",
-						year: 'numeric',
-						month: '2-digit',
-						day: '2-digit'
-					});
-					
-					const [month, day, year] = koreanDateStr.split('/');
-					const koreanMidnight = new Date(`${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}T00:00:00`);
-					const utcMidnight = new Date(koreanMidnight.getTime() - (9 * 60 * 60 * 1000));
-					oneDayAgoTime = utcMidnight.toISOString();
-				} catch (e) {
-					// 최종 폴백
-					const fallback = new Date();
-					fallback.setUTCHours(0, 0, 0, 0);
-					fallback.setTime(fallback.getTime() - (9 * 60 * 60 * 1000));
-					oneDayAgoTime = fallback.toISOString();
-				}
-			}
+			const oneDayAgoTime = window.KoreanTimeUtil ? 
+				window.KoreanTimeUtil.getTodayISOString() : 
+				getTodayISOString();
 			
 			console.log('[LongTerm] 오늘 날짜 기준시간:', oneDayAgoTime);
 			
-			// IndexedDB에서 데이터 로드
-			const filter = { 
-				isStudied: "1",
-				known_2: "2",
-				studiedDate: { $lt: oneDayAgoTime }
+			// ContentBasedDBManager는 복잡한 쿼리를 지원하지 않으므로
+			// 먼저 장기기억 단어만 가져온 후 수동으로 필터링
+			const filter = {
+				isStudied: '1',
+				known_2: '2'
 			};
 			
-			console.log('[LongTerm] 필터:', JSON.stringify(filter));
+			console.log('[LongTerm] 1차 필터:', filter);
 			
-			// 디버깅: 전체 장기기억 단어 수도 확인
-			const totalLongTermCount = await app.dbManager.getWordCount({
-				isStudied: "1",
-				known_2: "2"
+			// 장기기억 단어 모두 가져오기
+			const allLongTermWords = await this.dbManager.getWords(
+				filter,
+				0, // limit 0 = 모든 단어
+				{ field: 'No', direction: 'asc' }
+			);
+			
+			console.log('[LongTerm] 전체 장기기억 단어 수:', allLongTermWords.length);
+			
+			// 날짜 필터링을 수동으로 수행
+			const words = allLongTermWords.filter(word => {
+				// studiedDate가 오늘 0시보다 이전인 단어만
+				return word.studiedDate && word.studiedDate < oneDayAgoTime;
 			});
-			console.log('[LongTerm] 전체 장기기억 단어 수:', totalLongTermCount);
 			
-			// studiedDate 기준 오름차순 정렬
-			const words = await app.dbManager.getWords(filter, 10, { 
-				field: 'studiedDate', 
-				direction: 'asc' 
-			});
-			
-			console.log(`[LongTerm] 로드된 단어 수: ${words.length}`);
+			console.log('[LongTerm] 날짜 필터링 후 단어 수:', words.length);
 			
 			if (words.length > 0) {
-				console.log('[LongTerm] 첫 단어 정보:', {
-					word: words[0].word,
-					studiedDate: words[0].studiedDate,
-					studiedDateKorean: new Date(words[0].studiedDate).toLocaleString('ko-KR', { timeZone: 'Asia/Seoul' })
-				});
+				console.log('[LongTerm] 첫 단어:', words[0].content, words[0].studiedDate);
+				console.log('[LongTerm] 마지막 단어:', words[words.length-1].content, words[words.length-1].studiedDate);
 			}
 			
-			// difficult 필드가 숫자형인지 확인 및 변환
-			return words.map(word => {
-				if (word.difficult !== undefined) {
-					word.difficult = Number(word.difficult);
-				}
-				return word;
+			this.words = words;
+			this.currentIndex = 0;
+			this.meanings = [];
+			this.get_ids = [];
+			this.studiedDates = [];
+			
+			words.forEach(word => {
+				this.meanings.push(word.meaning || '');
+				this.get_ids.push(word._id);
+				this.studiedDates.push(word.studiedDate || '');
 			});
 			
+			console.log('[LongTerm Words]', {
+				count: this.words.length,
+				first: this.words[0]?.content,
+				last: this.words[this.words.length - 1]?.content
+			});
+			
+			return this.words;
 		} catch (error) {
-			console.error('[LongTermQMemoryMode] 단어 로드 오류:', error);
+			console.error('[LongTerm] 단어 로드 오류:', error);
 			return [];
 		} finally {
 			this.isLoading = false;
