@@ -851,26 +851,63 @@ class LongTermQMemoryMode extends BaseQMemoryMode {
     }
 
     async loadWords() {
-        if (this.isLoading) return [];
-        
-        this.isLoading = true;
-        try {
-            // 한국 시간 기준으로 오늘 날짜 가져오기
-			const oneDayAgoTime = window.KoreanTimeUtil ? 
-								  window.KoreanTimeUtil.getTodayISOString() : 
-								  getTodayISOString();
+		if (this.isLoading) return [];
+		
+		this.isLoading = true;
+		try {
+			// 한국 시간 기준으로 오늘 날짜 가져오기
+			let oneDayAgoTime;
+			
+			// 수정된 부분: 올바른 날짜 계산
+			if (window.KoreanTimeUtil && typeof window.KoreanTimeUtil.getTodayISOString === 'function') {
+				oneDayAgoTime = window.KoreanTimeUtil.getTodayISOString();
+			} else if (typeof window.getTodayISOString === 'function') {
+				oneDayAgoTime = window.getTodayISOString();
+			} else {
+				// 폴백: 직접 계산 (korean-time-util.js가 로드되지 않은 경우)
+				console.warn('[LongTerm] KoreanTimeUtil을 사용할 수 없어 직접 계산합니다');
+				
+				const now = new Date();
+				try {
+					// toLocaleString을 사용한 정확한 계산
+					const koreanDateStr = now.toLocaleString("en-US", {
+						timeZone: "Asia/Seoul",
+						year: 'numeric',
+						month: '2-digit',
+						day: '2-digit'
+					});
+					
+					const [month, day, year] = koreanDateStr.split('/');
+					const koreanMidnight = new Date(`${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}T00:00:00`);
+					const utcMidnight = new Date(koreanMidnight.getTime() - (9 * 60 * 60 * 1000));
+					oneDayAgoTime = utcMidnight.toISOString();
+				} catch (e) {
+					// 최종 폴백
+					const fallback = new Date();
+					fallback.setUTCHours(0, 0, 0, 0);
+					fallback.setTime(fallback.getTime() - (9 * 60 * 60 * 1000));
+					oneDayAgoTime = fallback.toISOString();
+				}
+			}
 			
 			console.log('[LongTerm] 오늘 날짜 기준시간:', oneDayAgoTime);
 			
-			// IndexedDB에서 데이터 로드 - 변경: isStudied: true → isStudied: "1"
+			// IndexedDB에서 데이터 로드
 			const filter = { 
 				isStudied: "1",
 				known_2: "2",
 				studiedDate: { $lt: oneDayAgoTime }
 			};
-            
-            console.log('[LongTerm] 필터:', JSON.stringify(filter));
-        
+			
+			console.log('[LongTerm] 필터:', JSON.stringify(filter));
+			
+			// 디버깅: 전체 장기기억 단어 수도 확인
+			const totalLongTermCount = await app.dbManager.getWordCount({
+				isStudied: "1",
+				known_2: "2"
+			});
+			console.log('[LongTerm] 전체 장기기억 단어 수:', totalLongTermCount);
+			
 			// studiedDate 기준 오름차순 정렬
 			const words = await app.dbManager.getWords(filter, 10, { 
 				field: 'studiedDate', 
@@ -878,11 +915,12 @@ class LongTermQMemoryMode extends BaseQMemoryMode {
 			});
 			
 			console.log(`[LongTerm] 로드된 단어 수: ${words.length}`);
+			
 			if (words.length > 0) {
 				console.log('[LongTerm] 첫 단어 정보:', {
 					word: words[0].word,
 					studiedDate: words[0].studiedDate,
-					dateTime: new Date(words[0].studiedDate).toLocaleString()
+					studiedDateKorean: new Date(words[0].studiedDate).toLocaleString('ko-KR', { timeZone: 'Asia/Seoul' })
 				});
 			}
 			
@@ -893,6 +931,7 @@ class LongTermQMemoryMode extends BaseQMemoryMode {
 				}
 				return word;
 			});
+			
 		} catch (error) {
 			console.error('[LongTermQMemoryMode] 단어 로드 오류:', error);
 			return [];
