@@ -337,78 +337,168 @@ if (typeof window.IndexedDBManager === 'undefined') {
       });
     }
 
-    /**
-     * 단어 가져오기
-     * @param {Object} filter - 필터 조건
-     * @param {number} limit - 최대 개수
-     * @param {Object} sort - 정렬 옵션
-     * @returns {Promise<Array>} 단어 배열
-     */
-    async getWords(filter = {}, limit = 20, sort = { field: 'No', direction: 'asc' }) {
-      return await this._executeTransaction(this.STORES.WORDS, 'readonly', (store) => {
-        return new Promise((resolve, reject) => {
-          const results = [];
-          const request = store.openCursor();
-          
-          request.onsuccess = (event) => {
-            const cursor = event.target.result;
-            if (cursor) {
-              // 필터 확인
-              let match = true;
-              for (const key in filter) {
-                if (filter.hasOwnProperty(key)) {
-                  // 필드 타입에 따른 비교
-                  const filterValue = filter[key];
-                  const cursorValue = cursor.value[key];
-                  
-                  // null/undefined 처리
-                  if (filterValue === null || filterValue === undefined) {
-                    continue;
-                  }
-                  
-                  // 문자열 비교 (known_2, status, isStudied)
-                  if (['known_2', 'status', 'isStudied'].includes(key)) {
-                    match = String(cursorValue) === String(filterValue);
-                  } else {
-                    match = cursorValue === filterValue;
-                  }
-                  
-                  if (!match) break;
-                }
-              }
-              
-              if (match) {
-                results.push(this.normalizeFieldTypes(cursor.value));
-              }
-              
-              cursor.continue();
-            } else {
-              // 정렬
-              if (sort && sort.field) {
-                results.sort((a, b) => {
-                  const aVal = a[sort.field] || 0;
-                  const bVal = b[sort.field] || 0;
-                  
-                  if (sort.direction === 'desc') {
-                    return bVal > aVal ? 1 : -1;
-                  }
-                  return aVal > bVal ? 1 : -1;
-                });
-              }
-              
-              // 제한
-              const finalResults = limit > 0 ? results.slice(0, limit) : results;
-              resolve(finalResults);
-            }
-          };
-          
-          request.onerror = (event) => {
-            console.error('단어 조회 오류:', event.target.error);
-            reject(event.target.error);
-          };
-        });
-      });
-    }
+				/**
+					* 단어 가져오기 - 복잡한 쿼리 지원 추가
+					* @param {Object} filter - 필터 조건 (복잡한 쿼리 연산자 지원)
+					* @param {number} limit - 최대 개수
+					* @param {Object} sort - 정렬 옵션
+					* @returns {Promise<Array>} 단어 배열
+					*/
+				async getWords(filter = {}, limit = 20, sort = { field: 'No', direction: 'asc' }) {
+						return await this._executeTransaction(this.STORES.WORDS, 'readonly', (store) => {
+								return new Promise((resolve, reject) => {
+										const results = [];
+										
+										// 인덱스 사용 가능 여부 확인
+										let useIndex = false;
+										let indexName = null;
+										let keyRange = null;
+										
+										// 날짜 필터가 있고 단일 조건인 경우 인덱스 사용 시도
+										if (filter.studiedDate && typeof filter.studiedDate === 'object') {
+												const dateFilter = filter.studiedDate;
+												const operators = Object.keys(dateFilter);
+												
+												if (operators.length === 1 && store.indexNames.contains('studiedDate')) {
+														const operator = operators[0];
+														const value = dateFilter[operator];
+														
+														try {
+																switch(operator) {
+																		case '$lt':
+																				keyRange = IDBKeyRange.upperBound(value, true);
+																				break;
+																		case '$lte':
+																				keyRange = IDBKeyRange.upperBound(value, false);
+																				break;
+																		case '$gt':
+																				keyRange = IDBKeyRange.lowerBound(value, true);
+																				break;
+																		case '$gte':
+																				keyRange = IDBKeyRange.lowerBound(value, false);
+																				break;
+																}
+																
+																if (keyRange) {
+																		useIndex = true;
+																		indexName = 'studiedDate';
+																}
+														} catch (error) {
+																console.warn('인덱스 범위 생성 실패:', error);
+														}
+												}
+										}
+										
+										// 커서 열기
+										let request;
+										if (useIndex && indexName && keyRange) {
+												console.log(`[IndexedDB] studiedDate 인덱스 사용, 범위:`, keyRange);
+												const index = store.index(indexName);
+												request = index.openCursor(keyRange);
+										} else {
+												request = store.openCursor();
+										}
+										
+										request.onsuccess = (event) => {
+												const cursor = event.target.result;
+												if (cursor) {
+														// 필터 확인
+														let match = true;
+														
+														for (const key in filter) {
+																if (!match) break;
+																
+																const filterValue = filter[key];
+																const cursorValue = cursor.value[key];
+																
+																// null/undefined 처리
+																if (filterValue === null || filterValue === undefined) {
+																		continue;
+																}
+																
+																// 복잡한 쿼리 연산자 처리
+																if (typeof filterValue === 'object' && filterValue !== null) {
+																		// 날짜나 숫자 비교 연산자
+																		for (const operator in filterValue) {
+																				const compareValue = filterValue[operator];
+																				
+																				switch(operator) {
+																						case '$lt':
+																								match = match && (cursorValue < compareValue);
+																								break;
+																						case '$lte':
+																								match = match && (cursorValue <= compareValue);
+																								break;
+																						case '$gt':
+																								match = match && (cursorValue > compareValue);
+																								break;
+																						case '$gte':
+																								match = match && (cursorValue >= compareValue);
+																								break;
+																						case '$ne':
+																								match = match && (cursorValue !== compareValue);
+																								break;
+																						case '$in':
+																								match = match && (Array.isArray(compareValue) && compareValue.includes(cursorValue));
+																								break;
+																						case '$nin':
+																								match = match && (Array.isArray(compareValue) && !compareValue.includes(cursorValue));
+																								break;
+																						default:
+																								console.warn(`지원하지 않는 연산자: ${operator}`);
+																				}
+																		}
+																} else {
+																		// 단순 일치 비교
+																		// 문자열 필드는 문자열로 비교
+																		if (['known_2', 'status', 'isStudied'].includes(key)) {
+																				match = String(cursorValue) === String(filterValue);
+																		} else {
+																				match = cursorValue === filterValue;
+																		}
+																}
+														}
+														
+														if (match) {
+																results.push(this.normalizeFieldTypes(cursor.value));
+														}
+														
+														cursor.continue();
+												} else {
+														// 정렬
+														if (sort && sort.field) {
+																results.sort((a, b) => {
+																		const aVal = a[sort.field];
+																		const bVal = b[sort.field];
+																		
+																		// null/undefined 처리
+																		if (aVal == null && bVal == null) return 0;
+																		if (aVal == null) return sort.direction === 'desc' ? 1 : -1;
+																		if (bVal == null) return sort.direction === 'desc' ? -1 : 1;
+																		
+																		// 비교
+																		if (sort.direction === 'desc') {
+																				return bVal > aVal ? 1 : (bVal < aVal ? -1 : 0);
+																		}
+																		return aVal > bVal ? 1 : (aVal < bVal ? -1 : 0);
+																});
+														}
+														
+														// 제한
+														const finalResults = limit > 0 ? results.slice(0, limit) : results;
+														
+														console.log(`[IndexedDB] 쿼리 결과: ${finalResults.length}개 (전체: ${results.length}개)`);
+														resolve(finalResults);
+												}
+										};
+										
+										request.onerror = (event) => {
+												console.error('단어 조회 오류:', event.target.error);
+												reject(event.target.error);
+										};
+								});
+						});
+				}
 
     /**
      * 단어 수 가져오기
