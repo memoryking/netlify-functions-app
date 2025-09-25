@@ -339,19 +339,15 @@ if (window.ContentBasedSystemLoaded) {
             });
         };
         
-        // DirectDataLoader 대기
-        const DirectDataLoaderClass = await waitForClass('DirectDataLoader');
+        // ContentAwareDataLoader 대기
+        const ContentAwareDataLoaderClass = await waitForClass('ContentAwareDataLoader');
         
         /**
          * 콘텐츠 인식 데이터 로더 - 에어테이블 연동 완성
          */
-        class CompletedContentAwareDataLoader extends DirectDataLoaderClass {
+        class CompletedContentAwareDataLoader extends ContentAwareDataLoaderClass {
             constructor(dbManager, airtableManager, networkManager) {
-                super(dbManager);
-
-                // 추가 매니저들 저장
-                this.airtableManager = airtableManager;
-                this.networkManager = networkManager;
+                super(dbManager, airtableManager, networkManager);
                 
                 // 초기화 완료 플래그
                 this.fullyInitialized = false;
