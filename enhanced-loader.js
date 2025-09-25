@@ -925,8 +925,7 @@ async function loadCoreScripts() {
       // 4단계: 필수 유틸리티 클래스들
       console.log('4단계: 필수 유틸리티 클래스 로드');
       await Promise.all([
-        loadScriptOnce('type-settings.js'),
-        loadScriptOnce('word-count-cache.js')
+        loadScriptOnce('type-settings.js')
       ]);
       if (window._initStatus && window._initStatus.modules) {
         window._initStatus.modules.utils = true;
@@ -961,20 +960,9 @@ async function loadCoreScripts() {
         window.hideDownloadOverlay();
       }
       
-      // 7단계: 데이터 로더들
-      console.log('7단계: 데이터 로더 로드');
-      await loadScriptOnce('data-loader.js', [
-        'content-based-db-manager.js', 
-        'airtable-manager.js', 
-        'network-manager.js'
-      ]);
-
-      await loadScriptOnce('content-aware-data-loader.js', [
-        'content-based-db-manager.js',
-        'airtable-manager.js',
-        'network-manager.js',
-        'data-loader.js'
-      ]);
+      // 7단계: 직접 데이터 로더
+      console.log('7단계: 직접 데이터 로더 로드');
+      await loadScriptOnce('direct-data-loader.js', ['content-based-db-manager.js']);
       if (window._initStatus && window._initStatus.modules) {
         window._initStatus.modules.dataLoader = true;
       }
@@ -998,7 +986,7 @@ async function loadCoreScripts() {
       console.log('8단계: 콘텐츠 시스템 로드');
       await loadScriptOnce('complete-content-system.js', [
         'content-based-db-manager.js',
-        'content-aware-data-loader.js',
+        'direct-data-loader.js',
         'airtable-manager.js',
         'network-manager.js'
       ]);
@@ -1037,10 +1025,7 @@ async function loadCoreScripts() {
       // 9단계: 확장 및 보조 스크립트들 (UIManager 포함)
       console.log('9단계: 확장 스크립트 로드');
       await Promise.all([
-        loadScriptOnce('direct-data-loader.js', ['content-based-db-manager.js']),
-        loadScriptOnce('airtable-adapter.js', ['airtable-manager.js', 'content-based-db-manager.js']),
-        loadScriptOnce('difficult-mode.js', ['content-based-db-manager.js']),
-        loadScriptOnce('UIManager.js')
+        loadScriptOnce('uimanager.js')
       ]);
       
       updateLoadingProgress(90, '최종 설정 중...');
@@ -1048,7 +1033,6 @@ async function loadCoreScripts() {
       // 10단계: 패치 파일들
       console.log('10단계: 패치 적용');
       await loadScriptOnce('airtable-fix.js', [
-        'content-aware-data-loader.js',
         'complete-content-system.js'
       ]);
       
