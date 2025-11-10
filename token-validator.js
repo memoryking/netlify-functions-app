@@ -330,7 +330,7 @@
             width: 100%;
           " onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 20px rgba(245, 158, 11, 0.5)'"
              onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 15px rgba(245, 158, 11, 0.4)'">
-            타입봇으로 이동
+            메모리킹으로 이동
           </button>
         </div>
       `;
