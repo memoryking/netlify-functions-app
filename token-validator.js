@@ -405,7 +405,7 @@
       
       if (!token) {
         console.log('토큰이 없습니다. 접근 차단.');
-        this.showAccessDeniedScreen('타입봇을 통해 접속해주세요.');
+        this.showAccessDeniedScreen('정상적인 경로로 로그인해주세요.');
         this.validationResult = { valid: false, blocked: true };
         this.isValidated = true;
         return this.validationResult;
