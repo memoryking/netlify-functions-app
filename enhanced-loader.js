@@ -898,7 +898,7 @@ async function loadCoreScripts() {
         loadScriptOnce('vipup-encryption.js')
       ]);
       
-      updateLoadingProgress(20, 'IndexedDB 초기화 중...');
+      updateLoadingProgress(20, 'DB 초기화 중...');
       
       // 2단계: ⭐ IndexedDBManager 먼저 로드 (ContentBasedDBManager가 상속하기 위해)
       console.log('2단계: IndexedDBManager 로드');
