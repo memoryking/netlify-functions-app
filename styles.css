@@ -567,7 +567,7 @@ body.loading .container {
    ========================================= */
 .study-progress-container {
     position: absolute;
-    top: 15px;
+    top: 20px;
     left: 50%;
     transform: translateX(-50%);
     text-align: center;
@@ -575,16 +575,16 @@ body.loading .container {
 }
 
 .study-progress-container .progress-text {
-    font-size: 1.3rem;
-    color: #1F2937;
-    font-weight: 700;
-    background: linear-gradient(135deg, #FFFFFF 0%, #F3F4F6 100%);
-    padding: 8px 24px;
-    border-radius: 20px;
+    font-size: 1rem;
+    color: #6B7280;
+    font-weight: 500;
+    background: rgba(255, 255, 255, 0.85);
+    padding: 6px 16px;
+    border-radius: 16px;
     display: inline-block;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-    border: 2px solid rgba(79, 70, 229, 0.2);
-    letter-spacing: 1px;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+    backdrop-filter: blur(8px);
+    letter-spacing: 0.5px;
 }
 
 /* 카드 컨테이너 */
@@ -1482,21 +1482,21 @@ div[class*="indicator"],
     }
     
     .study-progress-container {
-        top: 12px !important;
+        top: 18px !important;
         left: 50% !important;
         transform: translateX(-50%) !important;
     }
     
     .study-progress-container .progress-text {
-        font-size: 1.2rem !important;
-        padding: 6px 20px !important;
-        color: #1F2937 !important;
-        font-weight: 700 !important;
-        background: linear-gradient(135deg, #FFFFFF 0%, #F3F4F6 100%) !important;
-        border-radius: 20px !important;
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15) !important;
-        border: 2px solid rgba(79, 70, 229, 0.2) !important;
-        letter-spacing: 1px !important;
+        font-size: 0.95rem !important;
+        padding: 5px 14px !important;
+        color: #6B7280 !important;
+        font-weight: 500 !important;
+        background: rgba(255, 255, 255, 0.85) !important;
+        border-radius: 16px !important;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08) !important;
+        backdrop-filter: blur(8px) !important;
+        letter-spacing: 0.5px !important;
     }
     
     /* 카드 관련 */
@@ -1746,20 +1746,21 @@ div[class*="indicator"],
     
     /* 학습 화면 스타일 */
     .study-progress-container {
+        top: 18px !important;
         left: 50% !important;
         transform: translateX(-50%) !important;
     }
     
     .study-progress-container .progress-text {
-        font-size: 1.1rem !important;
-        padding: 6px 18px !important;
-        color: #1F2937 !important;
-        font-weight: 700 !important;
-        background: linear-gradient(135deg, #FFFFFF 0%, #F3F4F6 100%) !important;
-        border-radius: 20px !important;
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15) !important;
-        border: 2px solid rgba(79, 70, 229, 0.2) !important;
-        letter-spacing: 0.8px !important;
+        font-size: 0.9rem !important;
+        padding: 5px 13px !important;
+        color: #6B7280 !important;
+        font-weight: 500 !important;
+        background: rgba(255, 255, 255, 0.85) !important;
+        border-radius: 16px !important;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08) !important;
+        backdrop-filter: blur(8px) !important;
+        letter-spacing: 0.5px !important;
     }
     
     .card-container {
