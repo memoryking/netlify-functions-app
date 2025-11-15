@@ -482,9 +482,9 @@ body.loading .container {
 }
 
 /* 주황색 배경 카드의 loaded 상태 색상 오버라이드 */
-#qMemoryBtn .stats-value.loaded,
-#memorizingBtn .stats-value.loaded,
-#difficultBtn .stats-value.loaded {
+#qMemoryBtn .stats-info .stats-value.loaded,
+#memorizingBtn .stats-info .stats-value.loaded,
+#difficultBtn .stats-info .stats-value.loaded {
     color: #1F2937 !important;
 }
 
@@ -499,15 +499,15 @@ body.loading .container {
 }
 
 /* 주황색 배경 카드의 텍스트 색상 */
-#qMemoryBtn .stats-title,
-#memorizingBtn .stats-title,
-#difficultBtn .stats-title {
+#qMemoryBtn .stats-info .stats-title,
+#memorizingBtn .stats-info .stats-title,
+#difficultBtn .stats-info .stats-title {
     color: #1F2937 !important;
 }
 
-#qMemoryBtn .stats-value,
-#memorizingBtn .stats-value,
-#difficultBtn .stats-value {
+#qMemoryBtn .stats-info .stats-value,
+#memorizingBtn .stats-info .stats-value,
+#difficultBtn .stats-info .stats-value {
     color: #1F2937 !important;
 }
 
@@ -1352,51 +1352,59 @@ div[class*="indicator"],
     }
     
     .stats-title {
-        font-size: 13px !important;
+        font-size: 15px !important;
         white-space: nowrap !important;
+        font-weight: 600 !important;
+    }
+    
+    /* S 메모리 제목 특별 스타일 */
+    #qMemoryBtn .stats-title {
+        letter-spacing: -0.5px !important;
+        font-size: 14px !important;
     }
     
     .stats-value {
-        font-size: 15px !important;
+        font-size: 1.1rem !important;
         margin-top: 3px !important;
+        font-weight: 700 !important;
     }
     
     /* 주황색 배경 카드 텍스트 색상 */
-    #qMemoryBtn .stats-title,
-    #memorizingBtn .stats-title,
-    #difficultBtn .stats-title {
+    #qMemoryBtn .stats-info .stats-title,
+    #memorizingBtn .stats-info .stats-title,
+    #difficultBtn .stats-info .stats-title {
         color: #1F2937 !important;
     }
     
-    #qMemoryBtn .stats-value,
-    #memorizingBtn .stats-value,
-    #difficultBtn .stats-value {
+    #qMemoryBtn .stats-info .stats-value,
+    #memorizingBtn .stats-info .stats-value,
+    #difficultBtn .stats-info .stats-value {
         color: #1F2937 !important;
     }
     
     /* 어두운 배경 카드 텍스트 색상 */
-    .stats-grid #newWordsBtn .stats-title,
-    .stats-grid #longTermBtn .stats-title,
-    .stats-grid #shortTermBtn .stats-title {
+    .stats-grid #newWordsBtn .stats-info .stats-title,
+    .stats-grid #longTermBtn .stats-info .stats-title,
+    .stats-grid #shortTermBtn .stats-info .stats-title {
         color: #FFFFFF !important;
     }
     
-    .stats-grid #newWordsBtn .stats-value,
-    .stats-grid #longTermBtn .stats-value,
-    .stats-grid #shortTermBtn .stats-value {
+    .stats-grid #newWordsBtn .stats-info .stats-value,
+    .stats-grid #longTermBtn .stats-info .stats-value,
+    .stats-grid #shortTermBtn .stats-info .stats-value {
         color: #FFFFFF !important;
     }
     
     /* loaded 상태에서도 색상 유지 */
-    #qMemoryBtn .stats-value.loaded,
-    #memorizingBtn .stats-value.loaded,
-    #difficultBtn .stats-value.loaded {
+    #qMemoryBtn .stats-info .stats-value.loaded,
+    #memorizingBtn .stats-info .stats-value.loaded,
+    #difficultBtn .stats-info .stats-value.loaded {
         color: #1F2937 !important;
     }
     
-    .stats-grid #newWordsBtn .stats-value.loaded,
-    .stats-grid #longTermBtn .stats-value.loaded,
-    .stats-grid #shortTermBtn .stats-value.loaded {
+    .stats-grid #newWordsBtn .stats-info .stats-value.loaded,
+    .stats-grid #longTermBtn .stats-info .stats-value.loaded,
+    .stats-grid #shortTermBtn .stats-info .stats-value.loaded {
         color: #FFFFFF !important;
     }
     
@@ -1590,30 +1598,30 @@ div[class*="indicator"],
     }
     
     /* 주황색 배경 카드 (S메모리, 암기중, 고난도) - 깔끔한 검은색 */
-    #qMemoryBtn .stats-title,
-    #memorizingBtn .stats-title,
-    #difficultBtn .stats-title {
+    #qMemoryBtn .stats-info .stats-title,
+    #memorizingBtn .stats-info .stats-title,
+    #difficultBtn .stats-info .stats-title {
         color: #1F2937 !important;
     }
     
-    #qMemoryBtn .stats-value,
-    #memorizingBtn .stats-value,
-    #difficultBtn .stats-value {
+    #qMemoryBtn .stats-info .stats-value,
+    #memorizingBtn .stats-info .stats-value,
+    #difficultBtn .stats-info .stats-value {
         color: #000000 !important;
         font-size: 1.3rem !important;
         font-weight: 700 !important;
     }
     
     /* NEW, 장기기억, 단기기억 카드 - 흰색 */
-    .stats-grid #newWordsBtn .stats-title,
-    .stats-grid #longTermBtn .stats-title,
-    .stats-grid #shortTermBtn .stats-title {
+    .stats-grid #newWordsBtn .stats-info .stats-title,
+    .stats-grid #longTermBtn .stats-info .stats-title,
+    .stats-grid #shortTermBtn .stats-info .stats-title {
         color: #FFFFFF !important;
     }
     
-    .stats-grid #newWordsBtn .stats-value,
-    .stats-grid #longTermBtn .stats-value,
-    .stats-grid #shortTermBtn .stats-value {
+    .stats-grid #newWordsBtn .stats-info .stats-value,
+    .stats-grid #longTermBtn .stats-info .stats-value,
+    .stats-grid #shortTermBtn .stats-info .stats-value {
         color: #FFFFFF !important;
         font-size: 1.3rem !important;
         font-weight: 700 !important;
@@ -1621,15 +1629,15 @@ div[class*="indicator"],
     }
     
     /* loaded 상태에서도 색상 유지 */
-    #qMemoryBtn .stats-value.loaded,
-    #memorizingBtn .stats-value.loaded,
-    #difficultBtn .stats-value.loaded {
+    #qMemoryBtn .stats-info .stats-value.loaded,
+    #memorizingBtn .stats-info .stats-value.loaded,
+    #difficultBtn .stats-info .stats-value.loaded {
         color: #000000 !important;
     }
     
-    .stats-grid #newWordsBtn .stats-value.loaded,
-    .stats-grid #longTermBtn .stats-value.loaded,
-    .stats-grid #shortTermBtn .stats-value.loaded {
+    .stats-grid #newWordsBtn .stats-info .stats-value.loaded,
+    .stats-grid #longTermBtn .stats-info .stats-value.loaded,
+    .stats-grid #shortTermBtn .stats-info .stats-value.loaded {
         color: #FFFFFF !important;
     }
 }
