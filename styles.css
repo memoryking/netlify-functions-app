@@ -907,17 +907,7 @@ body.loading .container {
 }
 
 .result-title {
-    font-size: 2rem;
-    font-weight: 800;
-    background: linear-gradient(135deg, #4F46E5 0%, #7C3AED 100%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-    text-align: center;
-    margin-top: 0.5rem;
-    margin-bottom: 1.5rem;
-    letter-spacing: -0.5px;
-    text-shadow: 0 2px 8px rgba(79, 70, 229, 0.1);
+    display: none;
 }
 
 .score-circle {
@@ -1069,7 +1059,7 @@ body.loading .container {
     margin: 0 auto;
     background: linear-gradient(135deg, #FFFFFF 0%, #F9FAFB 100%);
     border-radius: 28px;
-    padding: 2.5rem 2rem;
+    padding: 2rem 2rem;
     box-shadow: 0 12px 48px rgba(0, 0, 0, 0.12), 0 4px 16px rgba(0, 0, 0, 0.08);
     animation: slideUp 0.5s ease-out;
 }
@@ -1733,12 +1723,6 @@ div[class*="indicator"],
     .remaining-words-box {
         max-width: 300px !important;
         padding: 0.9rem 1.2rem !important;
-    }
-    
-    .result-title {
-        font-size: 1.6rem !important;
-        font-weight: 800 !important;
-        margin-bottom: 1.2rem !important;
     }
 }
 
