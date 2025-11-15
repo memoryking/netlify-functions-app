@@ -1504,9 +1504,9 @@ div[class*="indicator"],
         margin: 30px auto 15px !important;
     }
     
-    /* 진행률 서클 내부 % 숫자 - 가시성 개선 */
+    /* 진행률 서클 내부 % 숫자 - 크기 조정 */
     .progress-text {
-        font-size: 2.4rem !important;
+        font-size: 1.9rem !important;
         font-weight: 800 !important;
         color: #FFFFFF !important;
         text-shadow: 0 2px 4px rgba(0,0,0,0.3) !important;
@@ -1524,16 +1524,17 @@ div[class*="indicator"],
         min-height: 54px !important;
     }
     
-    /* 통계 제목 */
+    /* 통계 제목 - 크기 증가 */
     .stats-title {
-        font-size: 13px !important;
+        font-size: 14px !important;
         margin-bottom: 2px !important;
+        font-weight: 600 !important;
     }
     
     /* S 메모리 제목 특별 스타일 */
     #qMemoryBtn .stats-title {
         letter-spacing: -0.5px !important;
-        font-size: 12px !important;
+        font-size: 13px !important;
     }
     
     /* 카드 내 숫자 기본 스타일 */
@@ -1558,6 +1559,12 @@ div[class*="indicator"],
     }
     
     /* NEW, 장기기억, 단기기억 카드 - 흰색 */
+    #newWordsBtn .stats-title,
+    #longTermBtn .stats-title,
+    #shortTermBtn .stats-title {
+        color: #FFFFFF !important;
+    }
+    
     #newWordsBtn .stats-value,
     #longTermBtn .stats-value,
     #shortTermBtn .stats-value {
