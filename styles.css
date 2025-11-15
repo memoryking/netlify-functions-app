@@ -1352,15 +1352,14 @@ div[class*="indicator"],
     }
     
     .stats-title {
-        font-size: 15px !important;
+        font-size: 16px !important;
         white-space: nowrap !important;
         font-weight: 600 !important;
     }
     
-    /* S 메모리 제목 특별 스타일 */
-    #qMemoryBtn .stats-title {
+    /* S 메모리 제목 - 글자 간격만 조정 */
+    #qMemoryBtn .stats-info .stats-title {
         letter-spacing: -0.5px !important;
-        font-size: 14px !important;
     }
     
     .stats-value {
@@ -1374,6 +1373,7 @@ div[class*="indicator"],
     #memorizingBtn .stats-info .stats-title,
     #difficultBtn .stats-info .stats-title {
         color: #1F2937 !important;
+        font-size: 16px !important;
     }
     
     #qMemoryBtn .stats-info .stats-value,
@@ -1387,6 +1387,7 @@ div[class*="indicator"],
     .stats-grid #longTermBtn .stats-info .stats-title,
     .stats-grid #shortTermBtn .stats-info .stats-title {
         color: #FFFFFF !important;
+        font-size: 16px !important;
     }
     
     .stats-grid #newWordsBtn .stats-info .stats-value,
@@ -1590,15 +1591,14 @@ div[class*="indicator"],
     
     /* 통계 제목 - 크기 증가 */
     .stats-title {
-        font-size: 14px !important;
+        font-size: 15px !important;
         margin-bottom: 2px !important;
         font-weight: 600 !important;
     }
     
-    /* S 메모리 제목 특별 스타일 */
-    #qMemoryBtn .stats-title {
+    /* S 메모리 제목 - 글자 간격만 조정 */
+    #qMemoryBtn .stats-info .stats-title {
         letter-spacing: -0.5px !important;
-        font-size: 13px !important;
     }
     
     /* 카드 내 숫자 기본 스타일 */
@@ -1612,6 +1612,7 @@ div[class*="indicator"],
     #memorizingBtn .stats-info .stats-title,
     #difficultBtn .stats-info .stats-title {
         color: #1F2937 !important;
+        font-size: 15px !important;
     }
     
     #qMemoryBtn .stats-info .stats-value,
@@ -1627,6 +1628,7 @@ div[class*="indicator"],
     .stats-grid #longTermBtn .stats-info .stats-title,
     .stats-grid #shortTermBtn .stats-info .stats-title {
         color: #FFFFFF !important;
+        font-size: 15px !important;
     }
     
     .stats-grid #newWordsBtn .stats-info .stats-value,
