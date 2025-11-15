@@ -568,8 +568,8 @@ body.loading .container {
 .study-progress-container {
     position: absolute;
     top: 20px;
-    left: 50%;
-    transform: translateX(-50%);
+    left: 0;
+    right: 0;
     text-align: center;
     z-index: 10;
 }
@@ -578,7 +578,7 @@ body.loading .container {
     font-size: 1rem;
     color: #6B7280;
     font-weight: 500;
-    letter-spacing: 0.5px;
+    display: inline-block;
 }
 
 /* 카드 컨테이너 */
@@ -1477,15 +1477,14 @@ div[class*="indicator"],
     
     .study-progress-container {
         top: 18px !important;
-        left: 50% !important;
-        transform: translateX(-50%) !important;
+        left: 0 !important;
+        right: 0 !important;
     }
     
     .study-progress-container .progress-text {
         font-size: 0.95rem !important;
         color: #6B7280 !important;
         font-weight: 500 !important;
-        letter-spacing: 0.5px !important;
     }
     
     /* 카드 관련 */
@@ -1736,15 +1735,14 @@ div[class*="indicator"],
     /* 학습 화면 스타일 */
     .study-progress-container {
         top: 18px !important;
-        left: 50% !important;
-        transform: translateX(-50%) !important;
+        left: 0 !important;
+        right: 0 !important;
     }
     
     .study-progress-container .progress-text {
         font-size: 0.9rem !important;
         color: #6B7280 !important;
         font-weight: 500 !important;
-        letter-spacing: 0.5px !important;
     }
     
     .card-container {
