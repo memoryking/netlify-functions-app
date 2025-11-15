@@ -481,6 +481,20 @@ body.loading .container {
     color: #4F46E5 !important;
 }
 
+/* 주황색 배경 카드의 loaded 상태 색상 오버라이드 */
+#qMemoryBtn .stats-value.loaded,
+#memorizingBtn .stats-value.loaded,
+#difficultBtn .stats-value.loaded {
+    color: #1F2937 !important;
+}
+
+/* 어두운 배경 카드의 loaded 상태 색상 오버라이드 */
+#newWordsBtn .stats-value.loaded,
+#longTermBtn .stats-value.loaded,
+#shortTermBtn .stats-value.loaded {
+    color: #FFFFFF !important;
+}
+
 .stats-value.updating {
     animation: pulse 0.5s ease;
 }
@@ -1380,6 +1394,19 @@ div[class*="indicator"],
         color: #FFFFFF !important;
     }
     
+    /* loaded 상태에서도 색상 유지 */
+    #qMemoryBtn .stats-value.loaded,
+    #memorizingBtn .stats-value.loaded,
+    #difficultBtn .stats-value.loaded {
+        color: #1F2937 !important;
+    }
+    
+    #newWordsBtn .stats-value.loaded,
+    #longTermBtn .stats-value.loaded,
+    #shortTermBtn .stats-value.loaded {
+        color: #FFFFFF !important;
+    }
+    
     /* 푸터 */
     .footer-text {
         font-size: 13px !important;
@@ -1598,6 +1625,19 @@ div[class*="indicator"],
         font-size: 1.3rem !important;
         font-weight: 700 !important;
         text-shadow: 0 1px 3px rgba(0,0,0,0.5) !important;
+    }
+    
+    /* loaded 상태에서도 색상 유지 */
+    #qMemoryBtn .stats-value.loaded,
+    #memorizingBtn .stats-value.loaded,
+    #difficultBtn .stats-value.loaded {
+        color: #000000 !important;
+    }
+    
+    #newWordsBtn .stats-value.loaded,
+    #longTermBtn .stats-value.loaded,
+    #shortTermBtn .stats-value.loaded {
+        color: #FFFFFF !important;
     }
 }
 
