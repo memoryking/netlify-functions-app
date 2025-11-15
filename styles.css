@@ -608,7 +608,7 @@ body.loading .container {
 .card-content {
     min-width: 100%;
     height: 100%;
-    padding: 1.5rem;
+    padding: 1.5rem 2rem;
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -638,7 +638,7 @@ body.loading .container {
 
 /* 단어 텍스트 스타일 */
 .word-text {
-    font-size: 3rem;
+    font-size: 2.8rem;
     font-weight: 700;
     margin-bottom: 0.5rem;
     line-height: 1.1;
@@ -845,7 +845,7 @@ body.loading .container {
 
 /* S메모리 모드 카드 앞면 글자 크기 강화 */
 #frontText {
-    font-size: 5rem !important;
+    font-size: 3.8rem !important;
     font-weight: 700 !important;
     text-align: center !important;
     display: flex !important;
@@ -853,7 +853,7 @@ body.loading .container {
     justify-content: center !important;
     width: 100% !important;
     height: 100% !important;
-    padding: 0 !important;
+    padding: 0 0.5rem !important;
     margin: 0 !important;
     line-height: 1.2 !important;
     color: #1F2937 !important;
@@ -1594,12 +1594,13 @@ div[class*="indicator"],
     
     /* 텍스트 크기 조정 */
     #frontText {
-        font-size: 4rem !important;
+        font-size: 3.2rem !important;
         color: #1F2937 !important;
+        padding: 0 0.5rem !important;
     }
     
     .word-text {
-        font-size: 2.8rem !important;
+        font-size: 2.5rem !important;
         font-weight: 700 !important;
         margin-bottom: 0.4rem !important;
         text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1) !important;
@@ -1876,7 +1877,7 @@ div[class*="indicator"],
     }
     
     .word-text {
-        font-size: 2.6rem !important;
+        font-size: 2.3rem !important;
         font-weight: 700 !important;
         text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1) !important;
         color: #1F2937 !important;
@@ -1926,8 +1927,9 @@ div[class*="indicator"],
 
 @media (max-width: 359px) {
     #frontText {
-        font-size: 3.5rem !important;
+        font-size: 2.8rem !important;
         color: #1F2937 !important;
+        padding: 0 0.5rem !important;
     }
 }
 
