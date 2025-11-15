@@ -328,6 +328,7 @@ body.loading .container {
     display: none;
     flex-direction: column;
     justify-content: center;
+    align-items: center;
 }
 
 .screen.active {
@@ -404,13 +405,9 @@ body.loading .container {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
     gap: 10px;
-    margin: 0 auto;
-    width: 95%;
-    max-width: 380px;
-    position: relative;
-    top: -15px;
-    left: 50%;
-    transform: translateX(-50%);
+    width: calc(100% - 20px);
+    max-width: 360px;
+    margin-top: -15px;
 }
 
 .stats-card {
@@ -1335,12 +1332,9 @@ div[class*="indicator"],
     /* 통계 그리드 */
     .stats-grid {
         gap: 8px !important;
-        width: 92% !important;
-        max-width: 370px !important;
-        margin: 10px auto 0 !important;
-        top: -10px !important;
-        left: 50% !important;
-        transform: translateX(-50%) !important;
+        width: calc(100% - 20px) !important;
+        max-width: 360px !important;
+        margin-top: -10px !important;
     }
     
     .stats-card {
@@ -1593,11 +1587,8 @@ div[class*="indicator"],
     /* 통계 그리드 */
     .stats-grid {
         gap: 6px !important;
-        width: 95% !important;
-        max-width: 380px !important;
-        margin: 10px auto 0 !important;
-        left: 50% !important;
-        transform: translateX(-50%) !important;
+        width: calc(100% - 16px) !important;
+        max-width: 360px !important;
     }
     
     /* 통계 카드 */
