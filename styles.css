@@ -1354,6 +1354,32 @@ div[class*="indicator"],
         margin-top: 3px !important;
     }
     
+    /* 주황색 배경 카드 텍스트 색상 */
+    #qMemoryBtn .stats-title,
+    #memorizingBtn .stats-title,
+    #difficultBtn .stats-title {
+        color: #1F2937 !important;
+    }
+    
+    #qMemoryBtn .stats-value,
+    #memorizingBtn .stats-value,
+    #difficultBtn .stats-value {
+        color: #1F2937 !important;
+    }
+    
+    /* 어두운 배경 카드 텍스트 색상 */
+    #newWordsBtn .stats-title,
+    #longTermBtn .stats-title,
+    #shortTermBtn .stats-title {
+        color: #FFFFFF !important;
+    }
+    
+    #newWordsBtn .stats-value,
+    #longTermBtn .stats-value,
+    #shortTermBtn .stats-value {
+        color: #FFFFFF !important;
+    }
+    
     /* 푸터 */
     .footer-text {
         font-size: 13px !important;
