@@ -407,6 +407,8 @@ body.loading .container {
     width: 95%;
     position: relative;
     top: -15px;
+    left: 0;
+    right: 0;
 }
 
 .stats-card {
@@ -1331,6 +1333,8 @@ div[class*="indicator"],
         width: 92% !important;
         margin: 10px auto 0 !important;
         top: -10px !important;
+        left: 0 !important;
+        right: 0 !important;
     }
     
     .stats-card {
@@ -1581,6 +1585,9 @@ div[class*="indicator"],
     .stats-grid {
         gap: 6px !important;
         width: 95% !important;
+        margin: 10px auto 0 !important;
+        left: 0 !important;
+        right: 0 !important;
     }
     
     /* 통계 카드 */
