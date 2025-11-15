@@ -488,13 +488,6 @@ body.loading .container {
     color: #1F2937 !important;
 }
 
-/* 어두운 배경 카드의 loaded 상태 색상 오버라이드 */
-#newWordsBtn .stats-value.loaded,
-#longTermBtn .stats-value.loaded,
-#shortTermBtn .stats-value.loaded {
-    color: #FFFFFF !important;
-}
-
 .stats-value.updating {
     animation: pulse 0.5s ease;
 }
@@ -1382,15 +1375,15 @@ div[class*="indicator"],
     }
     
     /* 어두운 배경 카드 텍스트 색상 */
-    #newWordsBtn .stats-title,
-    #longTermBtn .stats-title,
-    #shortTermBtn .stats-title {
+    .stats-grid #newWordsBtn .stats-title,
+    .stats-grid #longTermBtn .stats-title,
+    .stats-grid #shortTermBtn .stats-title {
         color: #FFFFFF !important;
     }
     
-    #newWordsBtn .stats-value,
-    #longTermBtn .stats-value,
-    #shortTermBtn .stats-value {
+    .stats-grid #newWordsBtn .stats-value,
+    .stats-grid #longTermBtn .stats-value,
+    .stats-grid #shortTermBtn .stats-value {
         color: #FFFFFF !important;
     }
     
@@ -1401,9 +1394,9 @@ div[class*="indicator"],
         color: #1F2937 !important;
     }
     
-    #newWordsBtn .stats-value.loaded,
-    #longTermBtn .stats-value.loaded,
-    #shortTermBtn .stats-value.loaded {
+    .stats-grid #newWordsBtn .stats-value.loaded,
+    .stats-grid #longTermBtn .stats-value.loaded,
+    .stats-grid #shortTermBtn .stats-value.loaded {
         color: #FFFFFF !important;
     }
     
@@ -1612,15 +1605,15 @@ div[class*="indicator"],
     }
     
     /* NEW, 장기기억, 단기기억 카드 - 흰색 */
-    #newWordsBtn .stats-title,
-    #longTermBtn .stats-title,
-    #shortTermBtn .stats-title {
+    .stats-grid #newWordsBtn .stats-title,
+    .stats-grid #longTermBtn .stats-title,
+    .stats-grid #shortTermBtn .stats-title {
         color: #FFFFFF !important;
     }
     
-    #newWordsBtn .stats-value,
-    #longTermBtn .stats-value,
-    #shortTermBtn .stats-value {
+    .stats-grid #newWordsBtn .stats-value,
+    .stats-grid #longTermBtn .stats-value,
+    .stats-grid #shortTermBtn .stats-value {
         color: #FFFFFF !important;
         font-size: 1.3rem !important;
         font-weight: 700 !important;
@@ -1634,9 +1627,9 @@ div[class*="indicator"],
         color: #000000 !important;
     }
     
-    #newWordsBtn .stats-value.loaded,
-    #longTermBtn .stats-value.loaded,
-    #shortTermBtn .stats-value.loaded {
+    .stats-grid #newWordsBtn .stats-value.loaded,
+    .stats-grid #longTermBtn .stats-value.loaded,
+    .stats-grid #shortTermBtn .stats-value.loaded {
         color: #FFFFFF !important;
     }
 }
