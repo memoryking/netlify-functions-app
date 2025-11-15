@@ -491,6 +491,19 @@ body.loading .container {
     transition: background-color 0.3s ease;
 }
 
+/* 주황색 배경 카드의 텍스트 색상 */
+#qMemoryBtn .stats-title,
+#memorizingBtn .stats-title,
+#difficultBtn .stats-title {
+    color: #1F2937 !important;
+}
+
+#qMemoryBtn .stats-value,
+#memorizingBtn .stats-value,
+#difficultBtn .stats-value {
+    color: #1F2937 !important;
+}
+
 #qMemoryBtn:hover, #memorizingBtn:hover, #difficultBtn:hover {
     transform: translateY(-3px);
     box-shadow: 0 6px 12px rgba(79, 70, 229, 0.12);
@@ -1491,14 +1504,12 @@ div[class*="indicator"],
         margin: 30px auto 15px !important;
     }
     
-    /* 진행률 서클 내부 % 숫자 - 가시성 개선 (최신 수정) */
+    /* 진행률 서클 내부 % 숫자 - 가시성 개선 */
     .progress-text {
         font-size: 2.4rem !important;
         font-weight: 800 !important;
-        color: #0B0E12 !important;
-        text-shadow: 0 1px 2px rgba(255,255,255,0.7),
-                     0 0 6px rgba(0,0,0,0.35) !important;
-        -webkit-text-stroke: 0.6px rgba(255,255,255,0.75);
+        color: #FFFFFF !important;
+        text-shadow: 0 2px 4px rgba(0,0,0,0.3) !important;
     }
     
     /* 통계 그리드 */
@@ -1515,54 +1526,45 @@ div[class*="indicator"],
     
     /* 통계 제목 */
     .stats-title {
-        font-size: 12px !important;
+        font-size: 13px !important;
         margin-bottom: 2px !important;
     }
     
     /* S 메모리 제목 특별 스타일 */
     #qMemoryBtn .stats-title {
         letter-spacing: -0.5px !important;
-        font-size: 11px !important;
+        font-size: 12px !important;
     }
     
-    /* 카드 내 숫자 스타일 - 가시성 개선 (최신 수정) */
+    /* 카드 내 숫자 기본 스타일 */
     .stats-value {
-        font-size: 1.15rem !important;
-        letter-spacing: 0.2px;
+        font-size: 1.2rem !important;
+        font-weight: 700 !important;
     }
     
-    /* 주황색 배경 카드 가시성 개선 (최신 수정) */
+    /* 주황색 배경 카드 (S메모리, 암기중, 고난도) - 깔끔한 검은색 */
     #qMemoryBtn .stats-title,
     #memorizingBtn .stats-title,
-    #difficultBtn .stats-title,
+    #difficultBtn .stats-title {
+        color: #1F2937 !important;
+    }
+    
     #qMemoryBtn .stats-value,
     #memorizingBtn .stats-value,
     #difficultBtn .stats-value {
-        color: #0B0E12 !important;
-        text-shadow: 0 1px 0 rgba(255,255,255,0.65);
+        color: #000000 !important;
+        font-size: 1.3rem !important;
+        font-weight: 700 !important;
     }
     
-    /* 장기기억 카드 가시성 개선 (최신 수정) */
-    #longTermBtn .stats-title,
-    #longTermBtn .stats-value {
-        text-shadow: 0 1px 0 rgba(255,255,255,0.6);
-    }
-    
-    /* 기타 카드들 가시성 개선 (최신 수정) */
-    #newBtn .stats-value,
+    /* NEW, 장기기억, 단기기억 카드 - 흰색 */
+    #newWordsBtn .stats-value,
     #longTermBtn .stats-value,
-    #shortTermBtn .stats-value,
-    .card--new .stats-value,
-    .card--long .stats-value,
-    .card--short .stats-value,
-    .card.gray .stats-value {
+    #shortTermBtn .stats-value {
         color: #FFFFFF !important;
-        font-weight: 900 !important;
-        font-size: 1.22rem !important;
-        letter-spacing: 0.3px !important;
-        text-shadow: 0 1px 2px rgba(0,0,0,0.85),
-                     0 0 1px rgba(0,0,0,0.65) !important;
-        -webkit-text-stroke: 0.5px rgba(0,0,0,0.55);
+        font-size: 1.3rem !important;
+        font-weight: 700 !important;
+        text-shadow: 0 1px 3px rgba(0,0,0,0.5) !important;
     }
 }
 
