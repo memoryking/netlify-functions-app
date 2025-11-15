@@ -846,21 +846,24 @@ body.loading .container {
 
 /* S메모리 모드 카드 앞면 글자 크기 강화 */
 #frontText {
-    font-size: clamp(1.3rem, 5vw, 2.2rem) !important;
+    font-size: 1.5rem !important;
     font-weight: 700 !important;
     text-align: center !important;
     display: flex !important;
     align-items: center !important;
     justify-content: center !important;
     width: 100% !important;
+    max-width: 100% !important;
     height: 100% !important;
-    padding: 0 1.2rem !important;
+    padding: 0 0.5rem !important;
     margin: 0 !important;
     line-height: 1.2 !important;
     color: #1F2937 !important;
     white-space: nowrap !important;
     overflow: hidden !important;
     text-overflow: clip !important;
+    letter-spacing: -0.04em !important;
+    transform: scaleX(0.95) !important;
 }
 
 /* =========================================
