@@ -1408,6 +1408,16 @@ div[class*="indicator"],
         color: #FFFFFF !important;
     }
     
+    /* 장기기억 내부 span 색상 오버라이드 */
+    .stats-grid #longTermBtn .stats-info .stats-value .long-term-before {
+        color: #FFFFFF !important;
+        text-shadow: 0 1px 3px rgba(0,0,0,0.5) !important;
+    }
+    
+    .stats-grid #longTermBtn .stats-info .stats-value .long-term-total {
+        color: rgba(255, 255, 255, 0.7) !important;
+    }
+    
     /* 푸터 */
     .footer-text {
         font-size: 13px !important;
@@ -1639,6 +1649,16 @@ div[class*="indicator"],
     .stats-grid #longTermBtn .stats-info .stats-value.loaded,
     .stats-grid #shortTermBtn .stats-info .stats-value.loaded {
         color: #FFFFFF !important;
+    }
+    
+    /* 장기기억 내부 span 색상 오버라이드 */
+    .stats-grid #longTermBtn .stats-info .stats-value .long-term-before {
+        color: #FFFFFF !important;
+        text-shadow: 0 1px 3px rgba(0,0,0,0.5) !important;
+    }
+    
+    .stats-grid #longTermBtn .stats-info .stats-value .long-term-total {
+        color: rgba(255, 255, 255, 0.7) !important;
     }
 }
 
