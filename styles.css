@@ -579,12 +579,14 @@ body.loading .container {
     color: #6B7280;
     font-weight: 500;
     background: rgba(255, 255, 255, 0.85);
-    padding: 6px 16px;
+    padding: 6px 20px;
     border-radius: 16px;
     display: inline-block;
     box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
     backdrop-filter: blur(8px);
     letter-spacing: 0.5px;
+    min-width: 60px;
+    text-align: center;
 }
 
 /* 카드 컨테이너 */
@@ -1489,7 +1491,7 @@ div[class*="indicator"],
     
     .study-progress-container .progress-text {
         font-size: 0.95rem !important;
-        padding: 5px 14px !important;
+        padding: 5px 18px !important;
         color: #6B7280 !important;
         font-weight: 500 !important;
         background: rgba(255, 255, 255, 0.85) !important;
@@ -1497,6 +1499,8 @@ div[class*="indicator"],
         box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08) !important;
         backdrop-filter: blur(8px) !important;
         letter-spacing: 0.5px !important;
+        min-width: 58px !important;
+        text-align: center !important;
     }
     
     /* 카드 관련 */
@@ -1753,7 +1757,7 @@ div[class*="indicator"],
     
     .study-progress-container .progress-text {
         font-size: 0.9rem !important;
-        padding: 5px 13px !important;
+        padding: 5px 16px !important;
         color: #6B7280 !important;
         font-weight: 500 !important;
         background: rgba(255, 255, 255, 0.85) !important;
@@ -1761,6 +1765,8 @@ div[class*="indicator"],
         box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08) !important;
         backdrop-filter: blur(8px) !important;
         letter-spacing: 0.5px !important;
+        min-width: 55px !important;
+        text-align: center !important;
     }
     
     .card-container {
