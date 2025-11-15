@@ -846,7 +846,7 @@ body.loading .container {
 
 /* S메모리 모드 카드 앞면 글자 크기 강화 */
 #frontText {
-    font-size: 2.8rem !important;
+    font-size: clamp(1.3rem, 5vw, 2.2rem) !important;
     font-weight: 700 !important;
     text-align: center !important;
     display: flex !important;
@@ -858,6 +858,9 @@ body.loading .container {
     margin: 0 !important;
     line-height: 1.2 !important;
     color: #1F2937 !important;
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: clip !important;
 }
 
 /* =========================================
@@ -1879,11 +1882,14 @@ div[class*="indicator"],
     }
     
     .word-text {
-        font-size: 1.8rem !important;
+        font-size: clamp(1.1rem, 4vw, 1.5rem) !important;
         font-weight: 700 !important;
         text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1) !important;
         color: #1F2937 !important;
         padding: 0 0.8rem !important;
+        white-space: nowrap !important;
+        overflow: hidden !important;
+        text-overflow: clip !important;
     }
     
     .meaning-text {
@@ -1930,9 +1936,12 @@ div[class*="indicator"],
 
 @media (max-width: 359px) {
     #frontText {
-        font-size: 2.2rem !important;
+        font-size: clamp(1.1rem, 4.5vw, 1.8rem) !important;
         color: #1F2937 !important;
         padding: 0 1.2rem !important;
+        white-space: nowrap !important;
+        overflow: hidden !important;
+        text-overflow: clip !important;
     }
 }
 
