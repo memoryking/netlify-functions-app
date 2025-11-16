@@ -3,6 +3,30 @@
    기존 app-loading-overlay를 대체합니다
    ========================================= */
 
+/* =========================================
+   초기 깜빡임 방지 (FOUC 방지)
+   ========================================= */
+/* 앱 로딩 전 메인 컨테이너 숨김 */
+.container {
+    opacity: 0 !important;
+    visibility: hidden !important;
+    transition: none !important;
+}
+
+/* 앱 준비 완료 시 표시 */
+.container.loading-visible {
+    opacity: 1 !important;
+    visibility: visible !important;
+    transition: opacity 0.8s ease 0.2s, visibility 0.8s ease 0.2s !important;
+}
+
+/* 로딩 중 상태 유지 */
+.container.loading-hidden {
+    opacity: 0 !important;
+    visibility: hidden !important;
+    transition: opacity 0.3s ease, visibility 0.3s ease !important;
+}
+
 /* 스플래시 스크린 메인 컨테이너 */
 .premium-splash {
     position: fixed !important;
@@ -11,12 +35,12 @@
     width: 100vw !important;
     height: 100vh !important;
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
-    display: none;
+    display: flex !important; /* 처음부터 표시 */
     align-items: center !important;
     justify-content: center !important;
     z-index: 999999 !important;
-    opacity: 1;
-    visibility: visible;
+    opacity: 1; /* 처음부터 보이도록 */
+    visibility: visible; /* 처음부터 보이도록 */
     transition: opacity 0.8s cubic-bezier(0.4, 0, 0.2, 1), visibility 0.8s;
     margin: 0 !important;
     padding: 0 !important;
@@ -37,6 +61,11 @@
     opacity: 0 !important;
     visibility: hidden !important;
     pointer-events: none !important;
+}
+
+/* 페이드아웃 완료 후 숨김 */
+.premium-splash.hidden {
+    display: none !important;
 }
 
 /* 중앙 콘텐츠 */

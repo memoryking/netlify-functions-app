@@ -178,7 +178,7 @@ class PremiumSplashScreen {
             
             // 애니메이션 완료 후 완전히 숨김
             setTimeout(() => {
-                this.splash.style.display = 'none';
+                this.splash.classList.add('hidden'); // display: none 적용
                 this.splash.classList.remove('fade-out');
                 
                 // 진행률 초기화

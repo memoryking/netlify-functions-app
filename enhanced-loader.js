@@ -237,7 +237,7 @@ function hideLoadingOverlay() {
       overlay.classList.remove('show');
       
       setTimeout(() => {
-        overlay.style.display = 'none';
+        overlay.classList.add('hidden'); // display: none 적용
         overlay.classList.remove('fade-out');
       }, 800);
     }
