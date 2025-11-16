@@ -1039,21 +1039,21 @@ class UIManager {
             const totalStudiedWords = this.app.currentMode?.words?.length || 0;
             
             statsContainer.innerHTML = `
-                <div class="local-stats" style="padding:15px; text-align:center;">
-                    <div style="font-size:1.5rem; font-weight:bold; color:#4F46E5;">학습 결과</div>
-                    <div style="margin-top:8px; font-size:0.9rem; color:#6B7280;">총 ${totalStudiedWords}개 학습 완료</div>
-                    <div style="margin-top:10px; display: flex; justify-content: space-around;">
-                        <div>
-                            <div style="font-size:1rem; color:#4F46E5;">알아요</div>
-                            <div id="finalKnownCount" style="font-size:1.6rem; color:#10B981;">${localStats.knownCount}개</div>
+                <div style="text-align:center; padding:0.5rem 0;">
+                    <div style="font-size:1.3rem; font-weight:bold; color:#4F46E5 !important;">학습 결과</div>
+                    <div style="margin-top:6px; font-size:0.85rem; color:#6B7280 !important;">총 ${totalStudiedWords}개 학습 완료</div>
+                    <div style="margin-top:15px; display: flex; justify-content: space-between; gap:1rem; padding:0 0.3rem;">
+                        <div style="flex:1; min-width:0;">
+                            <div style="font-size:0.9rem; color:#10B981 !important; font-weight:bold; white-space:nowrap;">알아요</div>
+                            <div id="finalKnownCount" style="font-size:1.4rem; color:#10B981 !important; margin-top:5px; font-weight:600;">${localStats.knownCount}</div>
                         </div>
-                        <div>
-                            <div style="font-size:1rem; color:#4F46E5;">몰라요</div>
-                            <div id="finalUnknownCount" style="font-size:1.6rem; color:#EF4444;">${localStats.unknownCount}개</div>
+                        <div style="flex:1; min-width:0;">
+                            <div style="font-size:0.9rem; color:#EF4444 !important; font-weight:bold; white-space:nowrap;">몰라요</div>
+                            <div id="finalUnknownCount" style="font-size:1.4rem; color:#EF4444 !important; margin-top:5px; font-weight:600;">${localStats.unknownCount}</div>
                         </div>
-                        <div>
-                            <div style="font-size:1rem; color:#F59E0B;">남은 단어</div>
-                            <div id="finalRemainingCount" style="font-size:1.6rem; color:#F59E0B;">로딩중</div>
+                        <div style="flex:1; min-width:0;">
+                            <div style="font-size:0.9rem; color:#F59E0B !important; font-weight:bold; white-space:nowrap;">남은 단어</div>
+                            <div id="finalRemainingCount" style="font-size:1.4rem; color:#F59E0B !important; margin-top:5px; font-weight:600;">로딩중</div>
                         </div>
                     </div>
                 </div>
@@ -1137,20 +1137,19 @@ class UIManager {
         const statsContainer = this.getElement('statsBox');
         if (statsContainer) {
             statsContainer.innerHTML = `
-                <div class="final-stats" style="padding:20px; text-align:center; background:#F8F9FE; border-radius:16px; box-shadow:0 4px 16px rgba(0,0,0,0.06);">
-                    <div style="font-size:1.8rem; font-weight:bold; color:#4F46E5; margin-bottom:15px;">최종 결과</div>
-                    <div style="display: flex; justify-content: space-around; font-size:1.2rem;">
-                        <div>
-                            <div style="font-weight: bold; color:#10B981;">알아요</div>
-                            <div id="finalKnownCount" style="font-size:1.6rem; margin-top:5px;">${finalStats.knownCount}개</div>
+                <div style="text-align:center; padding:0.5rem 0;">
+                    <div style="display: flex; justify-content: space-between; gap:1rem; font-size:1rem; padding:0 0.3rem;">
+                        <div style="flex:1; min-width:0;">
+                            <div style="font-weight: bold; color:#10B981 !important; font-size:0.9rem; white-space:nowrap;">알아요</div>
+                            <div id="finalKnownCount" style="font-size:1.4rem; margin-top:5px; color:#10B981 !important; font-weight:600;">${finalStats.knownCount}</div>
                         </div>
-                        <div>
-                            <div style="font-weight: bold; color:#EF4444;">몰라요</div>
-                            <div id="finalUnknownCount" style="font-size:1.6rem; margin-top:5px;">${finalStats.unknownCount}개</div>
+                        <div style="flex:1; min-width:0;">
+                            <div style="font-weight: bold; color:#EF4444 !important; font-size:0.9rem; white-space:nowrap;">몰라요</div>
+                            <div id="finalUnknownCount" style="font-size:1.4rem; margin-top:5px; color:#EF4444 !important; font-weight:600;">${finalStats.unknownCount}</div>
                         </div>
-                        <div>
-                            <div style="font-weight: bold; color:#F59E0B;">남은 단어</div>
-                            <div id="finalRemainingCount" style="font-size:1.6rem; margin-top:5px;">${finalStats.remainingWords}개</div>
+                        <div style="flex:1; min-width:0;">
+                            <div style="font-weight: bold; color:#F59E0B !important; font-size:0.9rem; white-space:nowrap;">남은 단어</div>
+                            <div id="finalRemainingCount" style="font-size:1.4rem; margin-top:5px; color:#F59E0B !important; font-weight:600;">${finalStats.remainingWords}</div>
                         </div>
                     </div>
                 </div>

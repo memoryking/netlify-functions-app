@@ -1137,14 +1137,22 @@ body.loading .container {
    완료 화면 스타일 - 개선된 디자인
    ========================================= */
 #completionScreen .result-container {
-    max-width: 400px;
+    max-width: 380px;
     width: 90%;
     margin: 0 auto;
     background: linear-gradient(135deg, #FFFFFF 0%, #F9FAFB 100%);
-    border-radius: 28px;
-    padding: 2rem 2rem;
-    box-shadow: 0 12px 48px rgba(0, 0, 0, 0.12), 0 4px 16px rgba(0, 0, 0, 0.08);
+    border-radius: 24px;
+    padding: 1.2rem 1.5rem;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1), 0 2px 8px rgba(0, 0, 0, 0.06);
     animation: slideUp 0.5s ease-out;
+}
+
+#completionScreen .result-container h2 {
+    color: #1F2937 !important;
+}
+
+#completionScreen .stats-box div {
+    color: inherit;
 }
 
 @keyframes slideUp {
@@ -1160,11 +1168,11 @@ body.loading .container {
 
 .stats-box {
     background: linear-gradient(135deg, #F8F9FE 0%, #EEF2FF 100%);
-    border-radius: 16px;
-    padding: 2rem 1.5rem;
-    margin-bottom: 2rem;
-    box-shadow: 0 4px 12px rgba(79, 70, 229, 0.08);
-    border: 1px solid rgba(79, 70, 229, 0.1);
+    border-radius: 12px;
+    padding: 0.8rem 1rem;
+    margin-bottom: 1.2rem;
+    box-shadow: 0 2px 8px rgba(79, 70, 229, 0.06);
+    border: 1px solid rgba(79, 70, 229, 0.08);
 }
 
 /* =========================================
