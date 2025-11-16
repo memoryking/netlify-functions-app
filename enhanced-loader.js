@@ -1174,12 +1174,16 @@ async function loadCoreScripts() {
 												// 메인 화면이 활성화되어 있는지 확인
 												const mainScreen = document.getElementById('mainScreen');
 												if (mainScreen && mainScreen.classList.contains('active')) {
-														// 푸터 텍스트 업데이트
+														// 🆕 푸터 텍스트 업데이트 - DB에서 직접 가져오기
 														const footerText = document.querySelector('.footer-text');
-														const totalElement = document.getElementById('totalWords');
-														if (footerText && totalElement && totalElement.textContent) {
-																const totalCount = totalElement.textContent;
-																footerText.textContent = `맥락과 반복 - 전체 ${totalCount}개`;
+														if (footerText && window.app && window.app.dbManager) {
+																window.app.dbManager.getWordCount({}).then(totalCount => {
+																		footerText.textContent = `맥락과 반복 - 전체 ${totalCount}개`;
+																		console.log('✅ 푸터 업데이트 완료:', totalCount, '개');
+																}).catch(err => {
+																		console.error('푸터 업데이트 오류:', err);
+																		footerText.textContent = '맥락과 반복';
+																});
 														}
 												}
 												
@@ -1378,6 +1382,34 @@ window.addEventListener('unhandledrejection', function(event) {
     console.warn('Promise rejection:', event.reason);
   }
 });
+
+// =========== 데이터 로딩 완료 이벤트 리스너 ===========
+// 🆕 초기 데이터 로딩이 완료되면 자동으로 통계 업데이트
+window.addEventListener('dataLoadComplete', async (event) => {
+  console.log('🎉 데이터 로딩 완료 감지:', event.detail);
+  
+  // 앱이 준비되어 있는지 확인
+  if (window.app && typeof window.app.updateWordCounts === 'function') {
+    try {
+      console.log('📊 통계 자동 업데이트 시작...');
+      
+      // 통계 업데이트 (강제)
+      await window.app.updateWordCounts('all', true);
+      
+      // 푸터 텍스트 업데이트
+      const footerText = document.querySelector('.footer-text');
+      if (footerText && window.app.dbManager) {
+        const totalCount = await window.app.dbManager.getWordCount({});
+        footerText.textContent = `맥락과 반복 - 전체 ${totalCount}개`;
+        console.log('✅ 데이터 로딩 후 통계 및 푸터 업데이트 완료:', totalCount, '개');
+      }
+    } catch (error) {
+      console.error('데이터 로딩 후 통계 업데이트 오류:', error);
+    }
+  } else {
+    console.warn('앱이 아직 준비되지 않아 통계 업데이트를 건너뜁니다.');
+  }
+}, { once: true }); // 한 번만 실행
 
 // =========== DOM 로드 완료 시 자동 시작 ===========
 if (document.readyState === 'loading') {
