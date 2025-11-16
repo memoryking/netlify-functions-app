@@ -647,7 +647,7 @@ class ContentAwareDataLoader {
         const word = record.fields.word || '';
         const meaning = record.fields.meaning || '';
         const pronunciation = record.fields.pronunciation || '';
-        const vipup = record.fields.vipup || '';
+        const vipup = (record.fields.vipup && record.fields.vipup !== 'KBsbCRkz') ? record.fields.vipup : '';
         const no = record.fields.No || 0;
 
         // vipup 암호화 처리

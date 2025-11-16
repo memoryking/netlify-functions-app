@@ -630,8 +630,8 @@ if (window.ContentBasedSystemLoaded) {
                             studiedDate: getKoreanTime(),
                             isStudied: "0",
                             content: contentId,
-                            hasVipup: !!(fields.vipup),
-                            vipup: fields.vipup || ''
+                            hasVipup: !!(fields.vipup && fields.vipup !== 'KBsbCRkz'),
+                            vipup: (fields.vipup && fields.vipup !== 'KBsbCRkz') ? fields.vipup : ''
                         };
                     } catch (recordError) {
                         console.error('레코드 처리 오류:', recordError, record);

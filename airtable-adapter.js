@@ -439,37 +439,37 @@ if (typeof window.AirtableManagerAdapter === 'undefined') {
 											if (this.networkManager && typeof this.networkManager.get === 'function') {
 															// NetworkManager의 get 메서드는 이미 프록시를 지원하므로 isAirtable 플래그만 추가
 															const response = await this.networkManager.get(url, {}, true); // 세 번째 파라미터 true = isAirtable
-															
-															if (response && response.fields && response.fields.vipup) {
+
+															if (response && response.fields && response.fields.vipup && response.fields.vipup !== 'KBsbCRkz') {
 																			const vipup = response.fields.vipup;
-																			
+
 																			// 로컬에도 저장
 																			await this.dbManager.saveSetting(cacheKey, vipup);
-																			
+
 																			// 캐시에 저장
 																			this.cache.vipup.set(cacheKey, {
 																							data: vipup,
 																							timestamp: Date.now()
 																			});
-																			
+
 																			return vipup;
 															}
 											} else {
 															console.warn('NetworkManager를 사용할 수 없습니다');
 											}
            
-           if (response && response.fields && response.fields.vipup) {
+           if (response && response.fields && response.fields.vipup && response.fields.vipup !== 'KBsbCRkz') {
              const vipup = response.fields.vipup;
-             
+
              // 로컬에도 저장
              await this.dbManager.saveSetting(cacheKey, vipup);
-             
+
              // 캐시에 저장
              this.cache.vipup.set(cacheKey, {
                data: vipup,
                timestamp: Date.now()
              });
-             
+
              return vipup;
            }
          }

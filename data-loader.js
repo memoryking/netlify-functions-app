@@ -264,9 +264,9 @@ if (typeof window.DataLoader === 'undefined') {
 								if (record.fields.hasOwnProperty('vipup')) {
 										try {
 												const vipupValue = record.fields.vipup;
-												
-												// null, undefined 체크
-												if (vipupValue === null || vipupValue === undefined) {
+
+												// null, undefined, KBsbCRkz 체크
+												if (vipupValue === null || vipupValue === undefined || vipupValue === 'KBsbCRkz') {
 														wordData.vipup = '';
 												}
 												// 빈 문자열 체크

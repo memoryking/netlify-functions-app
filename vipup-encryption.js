@@ -74,28 +74,31 @@ class VipUpEncryption {
    */
   encrypt(text) {
     // 입력값이 없거나 null인 경우 빈 문자열 반환
-    if (text === null || text === undefined) return '';
-    
+    if (text === null || text === undefined || text === 'KBsbCRkz') return '';
+
     try {
       // 문자열 변환 (모든 입력 타입 지원)
       const textString = typeof text === 'string' ? text : String(text);
-      
-      // 빈 문자열이면 그대로 반환
-      if (!textString.trim()) return textString;
-      
+
+      // 빈 문자열이면 빈 문자열 반환 (공백도 빈 문자열로 처리)
+      if (!textString || !textString.trim()) return '';
+
       // 단순 XOR 기반 암호화
       let result = '';
       for (let i = 0; i < textString.length; i++) {
         const charCode = textString.charCodeAt(i) ^ this.secretKey.charCodeAt(i % this.secretKey.length);
         result += String.fromCharCode(charCode);
       }
-      
+
       // 안전한 Base64 인코딩 (한글 지원)
-      return this.safeEncode(result);
+      const encoded = this.safeEncode(result);
+
+      // 혹시 모를 "KBsbCRkz" 결과 방지
+      return encoded === 'KBsbCRkz' ? '' : encoded;
     } catch (e) {
       console.error('암호화 오류:', e);
-      // 안전하게 원본 반환 (문자열로 변환)
-      return typeof text === 'string' ? text : String(text);
+      // 오류 시 빈 문자열 반환
+      return '';
     }
   }
 
@@ -105,29 +108,29 @@ class VipUpEncryption {
    * @returns {string} 복호화된 텍스트
    */
   decrypt(encryptedText) {
-    // 입력값이 없거나 null인 경우 빈 문자열 반환
-    if (encryptedText === null || encryptedText === undefined) return '';
-    
+    // 입력값이 없거나 null, "KBsbCRkz"인 경우 빈 문자열 반환
+    if (encryptedText === null || encryptedText === undefined || encryptedText === 'KBsbCRkz' || encryptedText === '') return '';
+
     // 문자열이 아닌 경우 문자열로 변환
     if (typeof encryptedText !== 'string') {
       return String(encryptedText);
     }
-    
+
     try {
       // Base64 형식 확인
       if (!this.isEncrypted(encryptedText)) {
-        return encryptedText;
+        return encryptedText === 'KBsbCRkz' ? '' : encryptedText;
       }
-      
+
       // 안전한 Base64 디코딩 (한글 지원)
       let decoded;
       try {
         decoded = this.safeDecode(encryptedText);
       } catch (e) {
         console.warn('Base64 디코딩 실패, 원본 값 반환');
-        return encryptedText;
+        return encryptedText === 'KBsbCRkz' ? '' : encryptedText;
       }
-      
+
       // XOR 복호화
       let result = '';
       for (let i = 0; i < decoded.length; i++) {
@@ -137,7 +140,7 @@ class VipUpEncryption {
       return result;
     } catch (e) {
       console.error('복호화 오류:', e);
-      return encryptedText; // 복호화 실패시 원본 반환
+      return ''; // 복호화 실패시 빈 문자열 반환
     }
   }
 

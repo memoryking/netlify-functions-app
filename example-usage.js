@@ -215,7 +215,10 @@ async function displayWordMedia(airtableId, adapter) {
     
     // VipUp 표시 (암기중/고난도 모드 모두 사용)
     safeDOM(vipupElement, (el) => {
-      el.innerHTML = mediaData.vipup || '학습 비법이 없습니다.';
+      const vipupValue = mediaData.vipup && mediaData.vipup !== 'KBsbCRkz' ? mediaData.vipup : '';
+      el.innerHTML = vipupValue;
+      // vipup이 없으면 요소 숨기기
+      el.style.display = vipupValue ? '' : 'none';
     });
     
     // 고난도 모드인 경우 추가 미디어 표시
@@ -340,7 +343,10 @@ async function refreshWordData(airtableId, adapter) {
     if (updatedData) {
       // VipUp 표시
       safeDOM(vipupElement, (el) => {
-        el.innerHTML = updatedData.vipup || '학습 비법이 없습니다.';
+        const vipupValue = updatedData.vipup && updatedData.vipup !== 'KBsbCRkz' ? updatedData.vipup : '';
+        el.innerHTML = vipupValue;
+        // vipup이 없으면 요소 숨기기
+        el.style.display = vipupValue ? '' : 'none';
       });
       
       // 고난도 모드인 경우 추가 미디어 표시 업데이트
