@@ -10,7 +10,7 @@
   class TokenValidator {
     constructor() {
       // 타입봇 URL 설정
-      this.TYPEBOT_URL = 'https://typebot.co/pt-id-dev-lvmrg2k';
+      this.TYPEBOT_URL = 'https://typebot.co/pt-id-bl1gnoc';
       
       // 검증 상태
       this.isValidated = false;
