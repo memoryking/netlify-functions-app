@@ -146,6 +146,17 @@ if (typeof window.DataLoader === 'undefined') {
       
       await new Promise(resolve => setTimeout(resolve, 1500)); // 완료 메시지 노출 시간
       this.hideLoadingMessage();
+
+      // 🆕 데이터 로딩 완료 이벤트 발생 - 통계 자동 업데이트 트리거
+      const dataLoadCompleteEvent = new CustomEvent('dataLoadComplete', {
+        detail: { 
+          loadedCount: loadedCount,
+          totalCount: totalCount,
+          contents: contents
+        }
+      });
+      window.dispatchEvent(dataLoadCompleteEvent);
+      console.log('✅ dataLoadComplete 이벤트 발생:', loadedCount, '개 단어 로드됨');
       
       return loadedCount > 0;
     } catch (error) {
