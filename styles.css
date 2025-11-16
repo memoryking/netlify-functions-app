@@ -647,12 +647,24 @@ body.loading .container {
     padding: 0 0.8rem;
 }
 
+/* 카드 뒷면의 단어는 흰색 */
+.card-content.back .word-text,
+.card-content.back #backWord {
+    color: #FFFFFF !important;
+}
+
 .meaning-text {
     font-size: 1.5rem;
     margin-bottom: 0.4rem;
     line-height: 1.3;
     font-weight: 500;
     color: #374151;
+}
+
+/* 카드 뒷면의 뜻은 흰색 */
+.card-content.back .meaning-text,
+.card-content.back #meaning {
+    color: #FFFFFF !important;
 }
 
 .pronunciation-text {
@@ -664,6 +676,12 @@ body.loading .container {
     color: #4B5563;
 }
 
+/* 카드 뒷면의 발음은 밝은 회색 */
+.card-content.back .pronunciation-text,
+.card-content.back #pronunciation {
+    color: #E5E7EB !important;
+}
+
 .vipup-text {
     font-size: 1.2rem;
     line-height: 1.3;
@@ -671,6 +689,12 @@ body.loading .container {
     padding-top: 0.3rem;
     font-weight: 400;
     color: #6B7280;
+}
+
+/* 카드 뒷면의 vipup은 연한 회색 */
+.card-content.back .vipup-text,
+.card-content.back #vipup {
+    color: #D1D5DB !important;
 }
 
 /* 버튼 스타일 */
@@ -864,6 +888,58 @@ body.loading .container {
     text-overflow: clip !important;
     letter-spacing: -0.04em !important;
     transform: scaleX(0.95) !important;
+}
+
+/* 일반 학습 모드 카드 뒷면 텍스트 색상 (ID 선택자로 확실하게 적용) */
+#backWord {
+    color: #FFFFFF !important;
+}
+
+#meaning {
+    color: #FFFFFF !important;
+}
+
+#pronunciation {
+    color: #E5E7EB !important;
+}
+
+#vipup {
+    color: #D1D5DB !important;
+}
+
+/* Q메모리 카드 뒷면 텍스트 색상 */
+#wordText {
+    color: #FFFFFF !important;
+}
+
+#backText {
+    color: #FFFFFF !important;
+}
+
+/* 일반 학습 모드 카드 뒷면 텍스트 색상 (ID 선택자로 확실하게 적용) */
+#backWord {
+    color: #FFFFFF !important;
+}
+
+#meaning {
+    color: #FFFFFF !important;
+}
+
+#pronunciation {
+    color: #E5E7EB !important;
+}
+
+#vipup {
+    color: #D1D5DB !important;
+}
+
+/* Q메모리 카드 뒷면 텍스트 색상 */
+#wordText {
+    color: #FFFFFF !important;
+}
+
+#backText {
+    color: #FFFFFF !important;
 }
 
 /* =========================================

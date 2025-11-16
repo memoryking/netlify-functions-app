@@ -1,0 +1,12 @@
+# 모든 텍스트 파일에 LF 사용 강제
+* text=auto eol=lf
+
+# CSS와 JS 파일은 항상 LF 사용
+*.css text eol=lf
+*.js text eol=lf
+*.html text eol=lf
+
+# 특정 바이너리 파일
+*.png binary
+*.jpg binary
+*.gif binary
