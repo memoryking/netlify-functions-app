@@ -1606,8 +1606,9 @@ div[class*="indicator"],
         padding: 0 1.2rem !important;
     }
     
-    .word-text {
-        font-size: 2rem !important;
+    /* 일반 학습 모드 - 앞면 단어 */
+    .card-content.front .word-text {
+        font-size: 2.5rem !important;
         font-weight: 700 !important;
         margin-bottom: 0.4rem !important;
         text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1) !important;
@@ -1615,23 +1616,33 @@ div[class*="indicator"],
         padding: 0 0.8rem !important;
     }
     
+    /* 일반 학습 모드 - 뒷면 단어 */
+    .card-content.back .word-text {
+        font-size: 2rem !important;
+        font-weight: 700 !important;
+        margin-bottom: 0.4rem !important;
+        text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1) !important;
+        color: #FFFFFF !important;
+        padding: 0 0.8rem !important;
+    }
+    
     .meaning-text {
         font-size: 1.5rem !important;
         margin-bottom: 0.4rem !important;
         font-weight: 500 !important;
-        color: #374151 !important;
+        color: #FFFFFF !important;
     }
     
     .pronunciation-text {
         font-size: 1.2rem !important;
         font-weight: 400 !important;
-        color: #4B5563 !important;
+        color: #E5E7EB !important;
     }
     
     .vipup-text {
         font-size: 1.1rem !important;
         font-weight: 400 !important;
-        color: #6B7280 !important;
+        color: #D1D5DB !important;
     }
     
     #wordText {
