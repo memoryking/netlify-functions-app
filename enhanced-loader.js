@@ -7,7 +7,7 @@
  */
 
 // =========== 앱 버전 및 상수 정의 ===========
-const APP_VERSION = '2.2.0'; // 버전 업데이트 - 토큰 검증 추가
+const APP_VERSION = '2.3.0'; // 버전 업데이트 - 프리미엄 스플래시 통합
 const CACHE_BUSTER = Date.now().toString(36).substring(0, 5);
 
 // =========== 환경 감지 ===========
@@ -148,94 +148,107 @@ function checkTypebotEnvironment() {
  * 로딩 오버레이 관련 함수들
  */
 function showLoadingOverlay() {
-  const overlay = document.getElementById('appLoadingOverlay');
-  if (!overlay) return;
+  console.log('💫 프리미엄 스플래시 스크린 표시');
   
-  // body의 원래 overflow 저장
-  document.body.dataset.originalOverflow = document.body.style.overflow || '';
-  document.body.style.overflow = 'hidden';
+  // 프리미엄 스플래시 초기화 (처음 한 번만)
+  if (!window.premiumSplash) {
+    if (typeof window.initPremiumSplash === 'function') {
+      window.initPremiumSplash();
+    } else {
+      console.warn('⚠️ premium-splash.js가 로드되지 않았습니다. 폴백 모드 사용');
+      // 폴백: 기존 방식 시도
+      const overlay = document.getElementById('appLoadingOverlay') || document.getElementById('premiumSplash');
+      if (overlay) {
+        overlay.style.display = 'flex';
+        overlay.classList.add('show');
+      }
+      return;
+    }
+  }
+  
+  // 스플래시 표시
+  if (typeof window.showPremiumSplash === 'function') {
+    window.showPremiumSplash();
+  }
   
   // container 숨기기
   const container = document.querySelector('.container');
   if (container) {
-    container.style.opacity = '0';
-    container.style.visibility = 'hidden';
+    container.classList.add('loading-hidden');
+    container.classList.remove('loading-visible');
   }
   
-  // 초기 설정 - 인라인 스타일로 강제 적용
-  overlay.style.cssText = `
-    position: fixed !important;
-    top: 0 !important;
-    left: 0 !important;
-    width: 100% !important;
-    height: 100% !important;
-    background: rgba(255, 255, 255, 0.98) !important;
-    display: flex !important;
-    align-items: center !important;
-    justify-content: center !important;
-    z-index: 999999 !important;
-  `;
-  
-  overlay.classList.remove('fade-out');
-  overlay.classList.remove('show');
-  
-  // 강제 리플로우로 트랜지션 보장
-  overlay.offsetHeight;
-  
-  // show 클래스 추가로 페이드인
-  overlay.classList.add('show');
+  // body overflow 숨김
+  document.body.style.overflow = 'hidden';
   
   // 초기 상태 설정
-  updateLoadingProgress(0, '앱을 초기화하는 중...');
+  updateLoadingProgress(0, '앱 준비중');
 }
 
 function updateLoadingProgress(percent, message) {
-  const overlay = document.getElementById('appLoadingOverlay');
-  if (!overlay) return;
-  
-  const progressFill = overlay.querySelector('.app-loading-progress-fill');
-  const loadingText = overlay.querySelector('.app-loading-text');
-  
-  if (progressFill) {
-    progressFill.style.width = `${percent}%`;
+  // 프리미엄 스플래시 프로그레스 업데이트
+  if (typeof window.updateSplashProgress === 'function') {
+    window.updateSplashProgress(percent, message);
+  } else {
+    // 폴백: 기존 방식 사용
+    const overlay = document.getElementById('appLoadingOverlay') || document.getElementById('premiumSplash');
+    if (overlay) {
+      const progressFill = overlay.querySelector('.app-loading-progress-fill') || 
+                          overlay.querySelector('.splash-progress-fill');
+      const loadingText = overlay.querySelector('.app-loading-text') || 
+                         overlay.querySelector('.splash-stage');
+      
+      if (progressFill) {
+        progressFill.style.width = `${percent}%`;
+      }
+      
+      if (loadingText && message) {
+        loadingText.textContent = message;
+      }
+    }
   }
   
-  if (loadingText && message) {
-    loadingText.textContent = message;
+  // 주요 단계에서만 로그 출력
+  if (message && (percent % 20 === 0 || percent === 5 || percent === 95 || percent === 100)) {
+    console.log(`📊 로딩 진행: ${percent}% - ${message}`);
   }
 }
 
 function hideLoadingOverlay() {
-  const overlay = document.getElementById('appLoadingOverlay');
-  if (!overlay) return;
+  console.log('✨ 프리미엄 스플래시 스크린 숨김');
   
   // body overflow 복원
-  const originalOverflow = document.body.dataset.originalOverflow || '';
-  document.body.style.overflow = originalOverflow;
-  delete document.body.dataset.originalOverflow;
+  document.body.style.overflow = '';
   
-  // container 표시
+  // container 표시 준비
   const container = document.querySelector('.container');
   if (container) {
-    container.style.opacity = '';
-    container.style.visibility = '';
+    container.classList.remove('loading-hidden');
   }
   
-  // 페이드 아웃 효과
-  overlay.classList.add('fade-out');
-  overlay.classList.remove('show');
-  
-  // 애니메이션 완료 후 완전히 숨김
-  setTimeout(() => {
-    overlay.style.display = 'none';
-    overlay.classList.remove('fade-out');
-    
-    // 진행률 초기화
-    const progressFill = overlay.querySelector('.app-loading-progress-fill');
-    if (progressFill) {
-      progressFill.style.width = '0%';
+  // 프리미엄 스플래시 숨기기 (부드러운 페이드아웃)
+  if (typeof window.hidePremiumSplash === 'function') {
+    window.hidePremiumSplash(0);
+  } else {
+    // 폴백: 기존 방식 사용
+    const overlay = document.getElementById('appLoadingOverlay') || document.getElementById('premiumSplash');
+    if (overlay) {
+      overlay.classList.add('fade-out');
+      overlay.classList.remove('show');
+      
+      setTimeout(() => {
+        overlay.style.display = 'none';
+        overlay.classList.remove('fade-out');
+      }, 800);
     }
-  }, 500);
+  }
+  
+  // container visible 클래스는 스플래시가 완전히 사라진 후 추가
+  setTimeout(() => {
+    if (container) {
+      container.classList.add('loading-visible');
+    }
+  }, 400);
 }
 
 /**

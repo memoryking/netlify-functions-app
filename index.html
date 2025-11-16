@@ -5,10 +5,12 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&family=Noto+Sans+KR:wght@400;700&display=swap" rel="stylesheet">
-    <title>수능영단어 - 콘텐츠 기반 학습</title>
+    <title>메모리킹 - 맥락과 반복</title>
     <link rel="stylesheet" href="styles.css">
+	<link rel="stylesheet" href="premium-splash.css">  <!-- 추가 -->
 </head>
 <body>
+    <!--
     <div id="appLoadingOverlay" class="app-loading-overlay" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 999999;">
         <div class="app-loading-content">
             <div class="app-loading-spinner"></div>
@@ -20,6 +22,36 @@
             </div>
         </div>
     </div>
+	-->
+	<!-- 프리미엄 스플래시 스크린 -->
+	<div class="premium-splash" id="premiumSplash">
+		<!-- 반짝이는 배경 효과 -->
+		<div class="sparkle" id="sparkleContainer"></div>
+		
+		<div class="splash-content">
+			<!-- 로고/아이콘 -->
+			<div class="splash-logo">
+				<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+					<path d="M21 5C19.89 4.65 18.67 4.5 17.5 4.5C15.55 4.5 13.45 4.9 12 6C10.55 4.9 8.45 4.5 6.5 4.5C4.55 4.5 2.45 4.9 1 6V20.65C1 20.9 1.25 21.15 1.5 21.15C1.6 21.15 1.65 21.1 1.75 21.1C3.1 20.45 5.05 20 6.5 20C8.45 20 10.55 20.4 12 21.5C13.35 20.65 15.8 20 17.5 20C19.15 20 20.85 20.3 22.25 21.05C22.35 21.1 22.4 21.1 22.5 21.1C22.75 21.1 23 20.85 23 20.6V6C22.4 5.55 21.75 5.25 21 5ZM21 18.5C19.9 18.15 18.7 18 17.5 18C15.8 18 13.35 18.65 12 19.5V8C13.35 7.15 15.8 6.5 17.5 6.5C18.7 6.5 19.9 6.65 21 7V18.5Z" fill="currentColor"/>
+				</svg>
+			</div>
+			
+			<!-- 타이틀 -->
+			<h1 class="splash-title">메모리킹</h1>
+			<p class="splash-subtitle">맥락과 반복으로 완벽한 학습</p>
+			
+			<!-- 프로그레스 -->
+			<div class="splash-progress-container">
+				<div class="splash-stage" id="splashStage">
+					앱 준비중<span class="loading-dots"><span></span><span></span><span></span></span>
+				</div>
+				<div class="splash-progress-bar">
+					<div class="splash-progress-fill" id="splashProgressFill"></div>
+				</div>
+				<div class="splash-percentage" id="splashPercentage">0%</div>
+			</div>
+		</div>
+	</div>
 	<!-- 다운로드 진행률 오버레이 -->
 	<div id="downloadOverlay" class="download-overlay">
 		<div class="download-content">
@@ -3275,6 +3307,7 @@ window.debugNetlifyEnv = function() {
 
 console.log('💡 Netlify 환경 디버깅: debugNetlifyEnv()를 입력하여 확인하세요.');
 </script>
+<script src="premium-splash.js"></script>
 <script src="enhanced-loader.js"></script>
 </body>
 </html>
