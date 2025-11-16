@@ -11,20 +11,48 @@ class TypeSettings {
                 // 글자 크기 3배 설정
                 const styleForType2 = document.createElement('style');
                 styleForType2.textContent = `
-                    /* 단어만 보일 때 (front) */
+                    /* 일반 학습 모드 - 앞면 */
+                    .card-content.front .word-text { font-size: 6.6rem !important; }
+                    #frontWord { font-size: 6.6rem !important; }
+                    
+                    /* 일반 학습 모드 - 뒷면 */
+                    .card-content.back .word-text { font-size: 5.4rem !important; }
+                    #backWord { font-size: 5.4rem !important; }
+                    .card-content.back .meaning-text { font-size: 4.2rem !important; }
+                    #meaning { font-size: 4.2rem !important; }
+                    .card-content.back .pronunciation-text { font-size: 3.45rem !important; }
+                    #pronunciation { font-size: 3.45rem !important; }
+                    .card-content.back .vipup-text { font-size: 3.15rem !important; }
+                    #vipup { font-size: 3.15rem !important; }
+                    
+                    /* Q메모리 - 단어만 보일 때 (front) */
                     .card-content.front .word-text { font-size: 7.5rem !important; }
                     #frontText { font-size: 6.6rem !important; }
                     
-                    /* 단어와 뜻이 함께 보일 때 (back) */
+                    /* Q메모리 - 단어와 뜻이 함께 보일 때 (back) */
                     .card-content.back .word-text { font-size: 3rem !important; }
                     #wordText { font-size: 2.64rem !important; }
                     
                     @media (max-width: 767px) {
-                        /* 단어만 보일 때 (front) */
+                        /* 일반 학습 모드 - 앞면 (모바일) */
+                        .card-content.front .word-text { font-size: 5.7rem !important; }
+                        #frontWord { font-size: 5.7rem !important; }
+                        
+                        /* 일반 학습 모드 - 뒷면 (모바일) */
+                        .card-content.back .word-text { font-size: 4.56rem !important; }
+                        #backWord { font-size: 4.56rem !important; }
+                        .card-content.back .meaning-text { font-size: 3.6rem !important; }
+                        #meaning { font-size: 3.6rem !important; }
+                        .card-content.back .pronunciation-text { font-size: 2.88rem !important; }
+                        #pronunciation { font-size: 2.88rem !important; }
+                        .card-content.back .vipup-text { font-size: 2.64rem !important; }
+                        #vipup { font-size: 2.64rem !important; }
+                        
+                        /* Q메모리 - 단어만 보일 때 (front) */
                         .card-content.front .word-text { font-size: 6.6rem !important; }
                         #frontText { font-size: 5.7rem !important; }
                         
-                        /* 단어와 뜻이 함께 보일 때 (back) */
+                        /* Q메모리 - 단어와 뜻이 함께 보일 때 (back) */
                         .card-content.back .word-text { font-size: 2.64rem !important; }
                         #wordText { font-size: 2.28rem !important; }
                     }

@@ -1884,8 +1884,9 @@ div[class*="indicator"],
         color: #FFFFFF !important;
     }
     
-    .word-text {
-        font-size: clamp(1.1rem, 4vw, 1.5rem) !important;
+    /* 일반 학습 모드 - 앞면 단어 크기 (더 크게) */
+    .card-content.front .word-text {
+        font-size: clamp(2.2rem, 8vw, 3.5rem) !important;
         font-weight: 700 !important;
         text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1) !important;
         color: #1F2937 !important;
@@ -1895,20 +1896,32 @@ div[class*="indicator"],
         text-overflow: clip !important;
     }
     
+    /* 일반 학습 모드 - 뒷면 단어 크기 */
+    .card-content.back .word-text {
+        font-size: clamp(1.8rem, 6vw, 2.5rem) !important;
+        font-weight: 700 !important;
+        text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1) !important;
+        color: #FFFFFF !important;
+        padding: 0 0.8rem !important;
+        white-space: nowrap !important;
+        overflow: hidden !important;
+        text-overflow: clip !important;
+    }
+    
     .meaning-text {
-        font-size: 1.4rem !important;
+        font-size: 1.8rem !important;
         font-weight: 500 !important;
-        color: #374151 !important;
+        color: #FFFFFF !important;
     }
     
     .pronunciation-text {
         font-size: 1.15rem !important;
-        color: #4B5563 !important;
+        color: #E5E7EB !important;
     }
     
     .vipup-text {
         font-size: 1.05rem !important;
-        color: #6B7280 !important;
+        color: #D1D5DB !important;
     }
     
     .answer-buttons {
