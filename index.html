@@ -1869,6 +1869,20 @@ class WordLearningApp {
             }
         }
         
+        
+        // 🆕 진행률 서클 초기화
+        const progressText = document.getElementById('progressPercentage');
+        if (progressText) {
+            progressText.textContent = '0';
+        }
+        
+        const progressCircle = document.querySelector('.progress-circle-fill');
+        if (progressCircle) {
+            const radius = 70;
+            const circumference = 2 * Math.PI * radius;
+            progressCircle.style.strokeDasharray = circumference;
+            progressCircle.style.strokeDashoffset = circumference; // 0%로 초기화
+        }
         // 애니메이션이 적용될 시간 주기
         document.body.offsetHeight; // 강제 리플로우 발생
     }
@@ -2121,6 +2135,31 @@ class WordLearningApp {
                             }
                         }
                     });
+
+                    // 🆕 진행률 서클 업데이트
+                    if (results.has('totalWords') && results.has('isStudiedWordsCount')) {
+                        const totalWords = results.get('totalWords') || 0;
+                        const studiedWords = results.get('isStudiedWordsCount') || 0;
+                        const percentage = totalWords > 0 ? Math.round((studiedWords / totalWords) * 100) : 0;
+                        
+                        // 진행률 텍스트 업데이트
+                        const progressText = document.getElementById('progressPercentage');
+                        if (progressText) {
+                            progressText.textContent = percentage;
+                        }
+                        
+                        // 진행률 원형 차트 업데이트
+                        const progressCircle = document.querySelector('.progress-circle-fill');
+                        if (progressCircle) {
+                            const radius = 70;
+                            const circumference = 2 * Math.PI * radius;
+                            const offset = circumference - (percentage / 100) * circumference;
+                            progressCircle.style.strokeDasharray = circumference;
+                            progressCircle.style.strokeDashoffset = offset;
+                        }
+                        
+                        console.log(`✅ 진행률 서클 업데이트: ${percentage}% (${studiedWords}/${totalWords})`);
+                    }
 
                     return true;
                 } catch (error) {
