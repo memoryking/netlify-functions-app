@@ -177,6 +177,9 @@
 
         <!-- 학습 화면 (기존 코드와 동일) -->
         <div id="studyScreen" class="screen">
+            <!-- X 닫기 버튼 (오른쪽 위) -->
+            <button class="close-btn" id="studyCloseBtn" aria-label="학습 중지">×</button>
+
             <div class="study-progress-container">
                 <div class="progress-text">
                     <span id="currentProgress">1</span>/<span id="totalWordsProgress">0</span>
@@ -198,6 +201,9 @@
             </div>
 
             <div class="button-container">
+                <!-- "card touch" 문구 -->
+                <div id="cardTouchHint" class="card-touch-hint">card touch</div>
+
                 <div id="answerButtons" class="answer-buttons">
                     <button class="study-btn" id="knowBtn">알아요</button>
                     <button class="study-btn" id="dontKnowBtn">몰라요</button>

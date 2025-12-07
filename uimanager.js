@@ -208,6 +208,7 @@ class UIManager {
             know: this.getElement('knowBtn'),
             dontKnow: this.getElement('dontKnowBtn'),
             stop: this.getElement('stopBtn'),
+            studyClose: this.getElement('studyCloseBtn'),
             continue: this.getElement('continueBtn'),
             start: this.getElement('startBtn'),
             choice1: this.getElement('choiceBtn1'),
@@ -328,6 +329,12 @@ class UIManager {
         }
         if (buttons.stop) {
             buttons.stop.addEventListener('click', () => {
+                if (!this.ensureApp()) return;
+                this.handleStop();
+            });
+        }
+        if (buttons.studyClose) {
+            buttons.studyClose.addEventListener('click', () => {
                 if (!this.ensureApp()) return;
                 this.handleStop();
             });
@@ -796,7 +803,13 @@ class UIManager {
             this.batchUpdate([
                 () => {
                     elements.cardSlide.classList.remove('show-answer');
-                    
+
+                    // "card touch" 문구 숨김 (카드 앞면)
+                    const cardTouchHint = this.getElement('cardTouchHint');
+                    if (cardTouchHint) {
+                        cardTouchHint.style.display = 'none';
+                    }
+
                     // 안전하게 텍스트 설정
                     elements.frontWord.textContent = currentWord.word || '';
                     elements.backWord.textContent = currentWord.word || '';
@@ -891,6 +904,16 @@ class UIManager {
             if (elements.cardSlide) {
                 elements.cardSlide.classList.add('show-answer');
             }
+
+            // "card touch" 문구 표시 (카드 뒷면)
+            const cardTouchHint = this.getElement('cardTouchHint');
+            if (cardTouchHint) {
+                cardTouchHint.style.display = 'block';
+                console.log('[handleAnswer] "card touch" 문구 표시됨');
+            } else {
+                console.warn('[handleAnswer] cardTouchHint 요소를 찾을 수 없음');
+            }
+
             if (elements.answerButtons) {
                 elements.answerButtons.style.display = 'none';
             }
@@ -1543,6 +1566,12 @@ class UIManager {
                     elements.backText.textContent = currentWord.meaning;
                     elements.card.classList.add('flipped');
                     elements.choiceButtons.style.display = 'none';
+
+                    // "card touch" 문구 표시
+                    const cardTouchHint = this.getElement('cardTouchHint');
+                    if (cardTouchHint) {
+                        cardTouchHint.style.display = 'block';
+                    }
                 }
             ]);
 

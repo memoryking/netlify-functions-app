@@ -826,6 +826,57 @@ body.loading .container {
     transform: translateY(-1px) scale(0.98);
 }
 
+/* 학습 화면 X 닫기 버튼 (오른쪽 위) */
+.close-btn {
+    position: absolute;
+    top: 15px;
+    right: 15px;
+    background: transparent;
+    border: none;
+    font-size: 2rem;
+    color: rgba(107, 114, 128, 0.3);
+    cursor: pointer;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+    z-index: 100;
+    padding: 0;
+    line-height: 1;
+}
+
+.close-btn:hover {
+    color: rgba(107, 114, 128, 0.6);
+    transform: scale(1.1);
+}
+
+.close-btn:active {
+    transform: scale(0.95);
+}
+
+/* "card touch" 문구 */
+.card-touch-hint {
+    position: absolute;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    color: rgba(156, 163, 175, 0.4);
+    font-size: 0.85rem;
+    font-weight: 400;
+    letter-spacing: 1px;
+    text-align: center;
+    pointer-events: none;
+    display: none;
+    z-index: 15;
+}
+
+/* 중지/계속 버튼 숨김 */
+#studyScreen .navigation-buttons {
+    display: none !important;
+}
+
 .navigation-buttons {
     display: flex;
     justify-content: center;
