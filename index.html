@@ -91,7 +91,7 @@
             
             <!-- 카테고리 카드 그리드 -->
             <div class="stats-grid">
-                <!-- NEW 카드 -->
+                <!-- NEW 카드 (왼쪽 1행) -->
                 <div class="stats-card" id="newWordsBtn">
                     <div class="stats-icon new-icon">
                         <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -103,47 +103,8 @@
                         <div class="stats-value" id="isStudiedWordsCount">0</div>
                     </div>
                 </div>
-                
-                <!-- 장기기억 카드 -->
-                <div class="stats-card" id="longTermBtn">
-                    <div class="stats-icon longterm-icon">
-                        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <path d="M13 3C9.23 3 6.19 5.95 6 9.66L4.08 12.19C3.84 12.5 4.08 13 4.5 13H6V16C6 17.11 6.89 18 8 18H9V21H16V16.31C18.37 15.19 20 12.8 20 10C20 6.14 16.88 3 13 3ZM14 14H11V17H10C9.45 17 9 16.55 9 16V12H7.16L8.43 10.39C8.78 9.94 8.97 9.39 8.98 8.82C9.07 6.62 10.86 5 13 5C15.76 5 18 7.24 18 10C18 12.19 16.29 14 14 14Z" fill="currentColor"/>
-                        </svg>
-                    </div>
-                    <div class="stats-info">
-                        <div class="stats-title">장기기억</div>
-                        <div class="stats-value" id="longTermCount">0/0</div>
-                    </div>
-                </div>
-                
-                <!-- S Memory 카드 -->
-                <div class="stats-card" id="qMemoryBtn">
-                    <div class="stats-icon smemory-icon">
-                        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <path d="M12 17.27L18.18 21L16.54 13.97L22 9.24L14.81 8.63L12 2L9.19 8.63L2 9.24L7.46 13.97L5.82 21L12 17.27Z" fill="currentColor"/>
-                        </svg>
-                    </div>
-                    <div class="stats-info">
-                        <div class="stats-title">S 메모리</div>
-                        <div class="stats-value" id="qMemoryCount">0</div>
-                    </div>
-                </div>
-                
-                <!-- 단기기억 카드 -->
-                <div class="stats-card" id="shortTermBtn">
-                    <div class="stats-icon shortterm-icon">
-                        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-							<path d="M7 2V13H10V22L17 10H13L17 2H7Z" fill="currentColor"/>
-						</svg>
-                    </div>
-                    <div class="stats-info">
-                        <div class="stats-title">단기기억</div>
-                        <div class="stats-value" id="shortTermCount">0</div>
-                    </div>
-                </div>
-                
-                <!-- 암기중 카드 -->
+
+                <!-- 암기중 카드 (오른쪽 1행) -->
                 <div class="stats-card" id="memorizingBtn">
                     <div class="stats-icon memorizing-icon">
                         <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -155,8 +116,34 @@
                         <div class="stats-value" id="memorizingCount">0</div>
                     </div>
                 </div>
-                
-                <!-- 고난도 카드 -->
+
+                <!-- S Memory 카드 (왼쪽 2행) -->
+                <div class="stats-card" id="qMemoryBtn">
+                    <div class="stats-icon smemory-icon">
+                        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M12 17.27L18.18 21L16.54 13.97L22 9.24L14.81 8.63L12 2L9.19 8.63L2 9.24L7.46 13.97L5.82 21L12 17.27Z" fill="currentColor"/>
+                        </svg>
+                    </div>
+                    <div class="stats-info">
+                        <div class="stats-title">S 메모리</div>
+                        <div class="stats-value" id="qMemoryCount">0</div>
+                    </div>
+                </div>
+
+                <!-- 단기기억 카드 (오른쪽 2행) -->
+                <div class="stats-card" id="shortTermBtn">
+                    <div class="stats-icon shortterm-icon">
+                        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+							<path d="M7 2V13H10V22L17 10H13L17 2H7Z" fill="currentColor"/>
+						</svg>
+                    </div>
+                    <div class="stats-info">
+                        <div class="stats-title">단기기억</div>
+                        <div class="stats-value" id="shortTermCount">0</div>
+                    </div>
+                </div>
+
+                <!-- 고난도 카드 (왼쪽 3행) -->
                 <div class="stats-card" id="difficultBtn">
                     <div class="stats-icon difficult-icon">
                         <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -166,6 +153,19 @@
                     <div class="stats-info">
                         <div class="stats-title">고난도</div>
                         <div class="stats-value" id="difficultCount">0</div>
+                    </div>
+                </div>
+
+                <!-- 장기기억 카드 (오른쪽 3행) -->
+                <div class="stats-card" id="longTermBtn">
+                    <div class="stats-icon longterm-icon">
+                        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M13 3C9.23 3 6.19 5.95 6 9.66L4.08 12.19C3.84 12.5 4.08 13 4.5 13H6V16C6 17.11 6.89 18 8 18H9V21H16V16.31C18.37 15.19 20 12.8 20 10C20 6.14 16.88 3 13 3ZM14 14H11V17H10C9.45 17 9 16.55 9 16V12H7.16L8.43 10.39C8.78 9.94 8.97 9.39 8.98 8.82C9.07 6.62 10.86 5 13 5C15.76 5 18 7.24 18 10C18 12.19 16.29 14 14 14Z" fill="currentColor"/>
+                        </svg>
+                    </div>
+                    <div class="stats-info">
+                        <div class="stats-title">장기기억</div>
+                        <div class="stats-value" id="longTermCount">0/0</div>
                     </div>
                 </div>
             </div>

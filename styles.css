@@ -336,6 +336,89 @@ body.loading .container {
     z-index: 1;
 }
 
+/* 메인 화면 다크 테마 */
+#mainScreen {
+    background: linear-gradient(135deg, #1e293b 0%, #334155 100%) !important;
+}
+
+#mainScreen #dashboardTitle {
+    color: #FFFFFF !important;
+}
+
+#mainScreen .progress-text {
+    color: #FFFFFF !important;
+}
+
+#mainScreen .progress-text span {
+    color: #FFFFFF !important;
+}
+
+/* NEW 버튼 - 청색 */
+#mainScreen #newWordsBtn {
+    background: rgba(59, 130, 246, 0.9) !important;
+    backdrop-filter: blur(10px);
+}
+
+#mainScreen #newWordsBtn .stats-title,
+#mainScreen #newWordsBtn .stats-value {
+    color: #FFFFFF !important;
+}
+
+/* 장기기억 버튼 - 초록색 */
+#mainScreen #longTermBtn {
+    background: rgba(16, 185, 129, 0.9) !important;
+    backdrop-filter: blur(10px);
+}
+
+#mainScreen #longTermBtn .stats-title,
+#mainScreen #longTermBtn .stats-value {
+    color: #FFFFFF !important;
+}
+
+/* 단기기억 버튼 - 주황색 */
+#mainScreen #shortTermBtn {
+    background: rgba(249, 115, 22, 0.9) !important;
+    backdrop-filter: blur(10px);
+}
+
+#mainScreen #shortTermBtn .stats-title,
+#mainScreen #shortTermBtn .stats-value {
+    color: #FFFFFF !important;
+}
+
+/* S 메모리 버튼 - 금색/노란색 */
+#mainScreen #qMemoryBtn {
+    background: rgba(245, 158, 11, 0.9) !important;
+    backdrop-filter: blur(10px);
+}
+
+#mainScreen #qMemoryBtn .stats-title,
+#mainScreen #qMemoryBtn .stats-value {
+    color: #1F2937 !important;
+}
+
+/* 암기중 버튼 - 빨간색 */
+#mainScreen #memorizingBtn {
+    background: rgba(239, 68, 68, 0.9) !important;
+    backdrop-filter: blur(10px);
+}
+
+#mainScreen #memorizingBtn .stats-title,
+#mainScreen #memorizingBtn .stats-value {
+    color: #FFFFFF !important;
+}
+
+/* 고난도 버튼 - 보라색 */
+#mainScreen #difficultBtn {
+    background: rgba(139, 92, 246, 0.9) !important;
+    backdrop-filter: blur(10px);
+}
+
+#mainScreen #difficultBtn .stats-title,
+#mainScreen #difficultBtn .stats-value {
+    color: #FFFFFF !important;
+}
+
 /* =========================================
    대시보드 스타일
    ========================================= */
