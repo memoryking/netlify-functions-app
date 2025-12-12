@@ -51,13 +51,20 @@ exports.handler = async (event) => {
       };
     }
 
-    const response = await fetch(url, {
+    const fetchOptions = {
       method,
       headers: {
         'Authorization': `Bearer ${AIRTABLE_API_KEY}`,
         'Content-Type': 'application/json'
       }
-    });
+    };
+
+    // PATCH/POST/PUT 요청의 경우 body 추가
+    if (body && (method === 'PATCH' || method === 'POST' || method === 'PUT')) {
+      fetchOptions.body = JSON.stringify(body);
+    }
+
+    const response = await fetch(url, fetchOptions);
 
     const data = await response.json();
 
