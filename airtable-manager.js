@@ -286,13 +286,15 @@
           throw new Error('전화번호가 지정되지 않았습니다.');
         }
         
-        // URL 구성
-        const filterFormula = encodeURIComponent(`{phone}="${phone}"`);
+        // URL 구성 (buildUrl에서 URLSearchParams가 자동 인코딩하므로 여기서는 인코딩하지 않음)
+        const filterFormula = `{phone}="${phone}"`;
         const url = this.buildUrl(this.userBaseUrl, this.userTable, {
           filterByFormula: filterFormula,
           maxRecords: 1
         });
-        
+
+        console.log('[AirtableManager] getUser 요청 URL:', url);
+
         // API 요청
         const data = await this.makeApiRequest(url);
         
@@ -313,6 +315,60 @@
       }
     }
     
+    /**
+     * 사용자 정보 조회 (phone + contents 조건)
+     * @param {string} phone 전화번호
+     * @param {string} contents 콘텐츠명
+     * @returns {Promise<Object>} 사용자 정보
+     */
+    async getUserByPhoneAndContents(phone, contents) {
+      try {
+        // 오프라인 모드 확인
+        if (this.offlineMode) {
+          console.log('AirtableManager: 오프라인 모드에서는 사용자 정보를 조회할 수 없습니다.');
+          return null;
+        }
+
+        // 전화번호 검증
+        if (!phone) {
+          throw new Error('전화번호가 지정되지 않았습니다.');
+        }
+
+        // contents 검증
+        if (!contents) {
+          console.warn('[AirtableManager] contents가 없어서 phone만으로 조회합니다.');
+          return this.getUser(phone);
+        }
+
+        // URL 구성 - AND 조건으로 phone과 contents 동시 검색
+        const filterFormula = `AND({phone}="${phone}",{contents}="${contents}")`;
+        const url = this.buildUrl(this.userBaseUrl, this.userTable, {
+          filterByFormula: filterFormula,
+          maxRecords: 1
+        });
+
+        console.log('[AirtableManager] getUserByPhoneAndContents 요청 URL:', url);
+
+        // API 요청
+        const data = await this.makeApiRequest(url);
+
+        // 사용자 데이터 검증
+        if (!data.records || data.records.length === 0) {
+          console.warn(`전화번호 ${phone}, contents ${contents}에 해당하는 사용자를 찾을 수 없습니다.`);
+          return null;
+        }
+
+        // 사용자 데이터 반환
+        return {
+          id: data.records[0].id,
+          ...data.records[0].fields
+        };
+      } catch (error) {
+        console.error('사용자 정보 조회 오류 (phone+contents):', error);
+        return null;
+      }
+    }
+
     /**
      * 사용자 정보 업데이트
      * @param {string} userId 사용자 ID

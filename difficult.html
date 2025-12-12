@@ -1199,32 +1199,75 @@
       async function initializeApp() {
         console.log('앱 초기화 시작...');
         console.log('Netlify 환경:', isNetlifyEnvironment);
-        
+
         try {
           // 로딩 상태 표시
           updateLoadingState(true, "초기화 중...");
-          
+
           // URL 파라미터 파싱
           parseUrlParams();
           console.log('파싱된 URL 파라미터:', app.urlParams);
-          
+
+          // ===== 기기 검증 =====
+          const phone = app.urlParams.phone || app.urlParams.phoneParam;
+          const contents = app.urlParams.contents || '';
+          console.log('[difficult.html] 기기 검증 시작:', { phone, contents });
+
+          // 부모 창에서 DeviceValidator와 AirtableManager 가져오기
+          if (window.opener && !window.opener.closed) {
+            if (!window.DeviceValidator && window.opener.DeviceValidator) {
+              window.DeviceValidator = window.opener.DeviceValidator;
+              console.log('[difficult.html] 부모 창에서 DeviceValidator 가져옴');
+            }
+            if (!window.AirtableManager && window.opener.AirtableManager) {
+              window.AirtableManager = window.opener.AirtableManager;
+              console.log('[difficult.html] 부모 창에서 AirtableManager 가져옴');
+            }
+          }
+
+          // 기기 검증 수행
+          if (window.DeviceValidator && phone) {
+            const airtableManager = window.AirtableManager ? window.AirtableManager.getInstance() : null;
+
+            if (airtableManager && airtableManager.userBaseUrl) {
+              console.log('[difficult.html] AirtableManager 준비됨, 기기 검증 실행');
+
+              // phone과 contents를 함께 전달
+              const validationResult = await window.DeviceValidator.validateDevice(phone, airtableManager, contents);
+              console.log('[difficult.html] 기기 검증 결과:', validationResult);
+
+              if (!validationResult.valid && validationResult.mismatch) {
+                console.warn('[difficult.html] ❌ 기기 불일치 - 접근 차단');
+                window.DeviceValidator.showMismatchScreen();
+                return; // 앱 초기화 중단
+              }
+
+              console.log('[difficult.html] ✅ 기기 검증 통과');
+            } else {
+              console.warn('[difficult.html] AirtableManager User DB 없음, 기기 검증 건너뜀');
+            }
+          } else {
+            console.log('[difficult.html] DeviceValidator 또는 전화번호 없음, 기기 검증 건너뜀');
+          }
+          // ===== 기기 검증 끝 =====
+
           // VipUpEncryption 클래스 로드 대기
           if (!window.VipUpEncryption && window.opener && window.opener.VipUpEncryption) {
             window.VipUpEncryption = window.opener.VipUpEncryption;
             console.log('부모 창에서 VipUpEncryption 가져옴');
           }
-          
+
           // 1. 이벤트 리스너 설정
           setupEventListeners();
-          
+
           // 2. 여러 소스에서 데이터 가져오기 시도
-          
+
           // 2.1. 부모 창에서 데이터 가져오기 시도
           if (getDataFromParent()) {
             console.log('부모 창에서 데이터 가져오기 성공');
             return;
           }
-          
+
           // 2.2. 로컬 스토리지에서 가져오기 시도
           const cachedWords = getFromLocalStorage();
           if (cachedWords && cachedWords.length > 0) {
@@ -1234,7 +1277,7 @@
             showToast(`캐시에서 ${cachedWords.length}개 단어를 로드했습니다.`, 'info');
             return;
           }
-          
+
           // 2.3. 직접 DB에서 가져오기 시도
           await fetchWordsDirectly();
         } catch (error) {

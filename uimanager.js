@@ -207,6 +207,7 @@ class UIManager {
             difficult: this.getElement('difficultBtn'),
             know: this.getElement('knowBtn'),
             dontKnow: this.getElement('dontKnowBtn'),
+            nextOnly: this.getElement('nextOnlyBtn'), // 암기중 모드에서 처음 학습하는 단어용 "다음" 버튼
             stop: this.getElement('stopBtn'),
             studyClose: this.getElement('studyCloseBtn'),
             continue: this.getElement('continueBtn'),
@@ -327,6 +328,13 @@ class UIManager {
                 this.handleAnswer(false);
             });
         }
+        // 암기중 모드에서 처음 학습하는 단어용 "다음" 버튼 이벤트
+        if (buttons.nextOnly) {
+            buttons.nextOnly.addEventListener('click', () => {
+                if (!this.ensureApp()) return;
+                this.handleNextOnlyButton();
+            });
+        }
         if (buttons.stop) {
             buttons.stop.addEventListener('click', () => {
                 if (!this.ensureApp()) return;
@@ -427,7 +435,25 @@ class UIManager {
                 }
             });
         }
-        
+
+        // 모달 닫기 버튼 이벤트
+        const modalCloseBtn = document.getElementById('modalCloseBtn');
+        if (modalCloseBtn) {
+            modalCloseBtn.addEventListener('click', () => {
+                this.hideNoWordsModal();
+            });
+        }
+
+        // 모달 배경 클릭 시 닫기
+        const modal = document.getElementById('noWordsModal');
+        if (modal) {
+            modal.addEventListener('click', (e) => {
+                if (e.target === modal) {
+                    this.hideNoWordsModal();
+                }
+            });
+        }
+
         console.log('UIManager: 이벤트 리스너 설정 완료');
     }
 
@@ -864,7 +890,17 @@ class UIManager {
                     }
 
                     if (elements.answerButtons && elements.navigationButtons) {
-                        elements.answerButtons.style.display = 'flex';
+                        // 암기중 모드에서 처음 학습하는 단어인지 확인
+                        const nextOnlyButtons = document.getElementById('nextOnlyButtons');
+                        if (this.app.currentMode instanceof MemorizingMode && currentWord.firstTimeInMemorizing) {
+                            // 처음 암기중에서 학습하는 단어: "다음" 버튼만 표시
+                            elements.answerButtons.style.display = 'none';
+                            if (nextOnlyButtons) nextOnlyButtons.style.display = 'flex';
+                        } else {
+                            // 일반적인 경우: "알아요/몰라요" 버튼 표시
+                            elements.answerButtons.style.display = 'flex';
+                            if (nextOnlyButtons) nextOnlyButtons.style.display = 'none';
+                        }
                         elements.navigationButtons.style.display = 'none';
                     }
                     
@@ -956,6 +992,73 @@ class UIManager {
             // 처리 완료 후 플래그 해제 (더 긴 지연시간으로 안전성 확보)
             setTimeout(() => {
                 this._isHandlingAnswer = false;
+            }, 800);
+        }
+    }
+
+    /**
+     * 암기중 모드에서 처음 학습하는 단어의 "다음" 버튼 처리
+     * - firstTimeInMemorizing을 false로 변경하고 DB 업데이트
+     * - 다음 단어로 이동
+     */
+    async handleNextOnlyButton() {
+        if (!this.ensureApp()) return false;
+
+        // 디바운싱
+        if (this._isHandlingNextOnly) {
+            console.log('[handleNextOnlyButton] 이미 처리 중입니다');
+            return false;
+        }
+
+        this._isHandlingNextOnly = true;
+
+        try {
+            const currentWord = this.app.getCurrentWord();
+            if (!currentWord || !currentWord._id) {
+                console.error('[handleNextOnlyButton] 현재 단어 없음');
+                return false;
+            }
+
+            console.log('[handleNextOnlyButton] 처리 시작:', currentWord.word);
+
+            // 1. IndexedDB에서 firstTimeInMemorizing을 false로 업데이트
+            const koreanTimeNow = window.KoreanTimeUtil ?
+                window.KoreanTimeUtil.getKoreanTimeISOString() :
+                new Date().toISOString();
+
+            const updateData = {
+                firstTimeInMemorizing: false,
+                updatedAt: koreanTimeNow
+            };
+
+            await this.app.dbManager.updateWord(currentWord._id, updateData);
+            console.log('[handleNextOnlyButton] DB 업데이트 완료');
+
+            // 2. 로컬 firstTimeFlags 배열도 업데이트
+            if (this.app.currentMode.firstTimeFlags && this.app.currentMode.currentIndex < this.app.currentMode.firstTimeFlags.length) {
+                this.app.currentMode.firstTimeFlags[this.app.currentMode.currentIndex] = false;
+            }
+
+            // 3. "다음" 버튼 숨기고 네비게이션 버튼 표시 (계속 버튼용)
+            const nextOnlyButtons = document.getElementById('nextOnlyButtons');
+            const navigationButtons = this.getElement('navigationButtons');
+            const cardSlide = this.getElement('cardSlide');
+
+            if (nextOnlyButtons) nextOnlyButtons.style.display = 'none';
+            if (navigationButtons) navigationButtons.style.display = 'flex';
+            if (cardSlide) cardSlide.classList.add('show-answer');
+
+            // "card touch" 문구 표시
+            const cardTouchHint = this.getElement('cardTouchHint');
+            if (cardTouchHint) cardTouchHint.style.display = 'block';
+
+            return true;
+        } catch (error) {
+            console.error('[handleNextOnlyButton] 오류:', error);
+            return false;
+        } finally {
+            setTimeout(() => {
+                this._isHandlingNextOnly = false;
             }, 800);
         }
     }
@@ -1331,22 +1434,43 @@ class UIManager {
 
     async handleLongTermClick() {
         if (!this.ensureApp()) return;
-        
+
         console.log('Long term button clicked');
         const result = await this.app.startMode('longTerm');
         console.log('Start mode result:', result);
-        
-        if (result.success) {
-            if (this.app.currentMode?.words?.length > 0) {
-                this.showScreen('qGame');
-                this.resetQMemoryGame();
-                this.showQMemoryCard();
-                await this.app.updateWordCounts('longTerm'); // 필요한 카운트만 업데이트
-            } else {
-                this.showMessage('main', '학습할 단어가 없습니다.');
-            }
+        console.log('Current mode words length:', this.app.currentMode?.words?.length);
+
+        // 단어를 불러올 수 없거나 단어가 없는 경우 모달 표시
+        if (!result.success || !this.app.currentMode?.words?.length) {
+            console.log('장기기억 학습할 단어 없음 - 모달 표시');
+            this.showNoWordsModal();
+            return;
+        }
+
+        // 학습 시작
+        console.log('장기기억 학습 시작 - 단어 있음');
+        this.showScreen('qGame');
+        this.resetQMemoryGame();
+        this.showQMemoryCard();
+        await this.app.updateWordCounts('longTerm');
+    }
+
+    showNoWordsModal() {
+        console.log('showNoWordsModal 호출됨');
+        const modal = document.getElementById('noWordsModal');
+        console.log('모달 요소:', modal);
+        if (modal) {
+            modal.style.display = 'flex';
+            console.log('모달 display 설정:', modal.style.display);
         } else {
-            this.showMessage('main', result.error || '학습을 시작할 수 없습니다.');
+            console.error('noWordsModal 요소를 찾을 수 없음');
+        }
+    }
+
+    hideNoWordsModal() {
+        const modal = document.getElementById('noWordsModal');
+        if (modal) {
+            modal.style.display = 'none';
         }
     }
 
@@ -1907,8 +2031,8 @@ class UIManager {
             }
             
             if (elements.longTermCount) {
-                // 장기기억은 특별한 포맷 적용
-                elements.longTermCount.innerHTML = `<span class="long-term-before">${longTermBeforeDate}</span><span class="long-term-total">(${longTermTotal})</span>`;
+                // 장기기억은 전체 개수만 표시
+                elements.longTermCount.textContent = longTermTotal;
             }
             
             if (elements.difficultCount) {

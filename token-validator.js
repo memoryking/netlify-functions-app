@@ -9,14 +9,49 @@
   // 토큰 검증 클래스
   class TokenValidator {
     constructor() {
-      // 타입봇 URL 설정
-      this.TYPEBOT_URL = 'https://typebot.co/pt-id-bl1gnoc';
+      // 타입봇 URL 설정 (URL 파라미터에서 가져오거나 localStorage에서 복구)
+      this.TYPEBOT_URL = this.getTypebotUrl();
       
       // 검증 상태
       this.isValidated = false;
       this.validationResult = null;
     }
-    
+
+    // 타입봇 URL 가져오기 (URL 파라미터 > localStorage > 기본값)
+    getTypebotUrl() {
+      const STORAGE_KEY = 'memoryking_typebot_url';
+      const DEFAULT_URL = 'https://typebot.co/pt-id-dev-lvmrg2k'; // 기본값 (fallback)
+
+      try {
+        // 1. URL 파라미터에서 가져오기
+        const urlParams = new URLSearchParams(window.location.search);
+        const typebotUrl = urlParams.get('typebot_url');
+
+        if (typebotUrl && typebotUrl.trim() !== '') {
+          const decodedUrl = decodeURIComponent(typebotUrl).trim();
+          // localStorage에 저장
+          localStorage.setItem(STORAGE_KEY, decodedUrl);
+          console.log('[TokenValidator] 타입봇 URL 설정 (URL 파라미터):', decodedUrl);
+          return decodedUrl;
+        }
+
+        // 2. localStorage에서 복구
+        const savedUrl = localStorage.getItem(STORAGE_KEY);
+        if (savedUrl && savedUrl.trim() !== '') {
+          console.log('[TokenValidator] 타입봇 URL 설정 (localStorage):', savedUrl);
+          return savedUrl;
+        }
+
+        // 3. 기본값 사용
+        console.log('[TokenValidator] 타입봇 URL 설정 (기본값):', DEFAULT_URL);
+        return DEFAULT_URL;
+
+      } catch (e) {
+        console.error('[TokenValidator] 타입봇 URL 가져오기 오류:', e);
+        return DEFAULT_URL;
+      }
+    }
+
     // Base64 디코드 함수 (브라우저 호환)
     decodeBase64(str) {
       try {
@@ -118,6 +153,7 @@
             hour: '2-digit',
             minute: '2-digit'
           }),
+          expiresTimestamp: exp, // 원본 타임스탬프 저장 (주기적 체크용)
           remainingTime: remainingMs,
           remainingDays: remainingDays,
           remainingHours: remainingHours,
@@ -479,21 +515,24 @@
       setInterval(() => {
         if (this.validationResult && this.validationResult.valid) {
           const now = Date.now();
-          const expiresTimestamp = new Date(this.validationResult.expiresAt).getTime();
-          
-          console.log('주기적 체크:', {
-            now: new Date(now).toISOString(),
-            expires: new Date(expiresTimestamp).toISOString(),
-            isExpired: now > expiresTimestamp
-          });
-          
-          if (now > expiresTimestamp) {
-            console.log('토큰이 만료되었습니다. 만료 화면 표시.');
-            this.showExpiredScreen({
-              reason: '사용 기간이 만료되었습니다',
-              expiredAt: this.validationResult.expiresAt,
-              phone: this.validationResult.phone
+          // expiresTimestamp 사용 (원본 타임스탬프)
+          const expiresTimestamp = this.validationResult.expiresTimestamp || 0;
+
+          if (expiresTimestamp > 0) {
+            console.log('주기적 체크:', {
+              now: new Date(now).toISOString(),
+              expires: new Date(expiresTimestamp).toISOString(),
+              isExpired: now > expiresTimestamp
             });
+
+            if (now > expiresTimestamp) {
+              console.log('토큰이 만료되었습니다. 만료 화면 표시.');
+              this.showExpiredScreen({
+                reason: '사용 기간이 만료되었습니다',
+                expiredAt: this.validationResult.expiresAt,
+                phone: this.validationResult.phone
+              });
+            }
           }
         }
       }, intervalMinutes * 60 * 1000);
@@ -504,19 +543,25 @@
       if (!this.validationResult || !this.validationResult.valid) {
         return null;
       }
-      
+
       const now = Date.now();
-      const exp = new Date(this.validationResult.expiresAt).getTime();
+      // expiresTimestamp 사용 (원본 타임스탬프)
+      const exp = this.validationResult.expiresTimestamp || 0;
+
+      if (exp === 0) {
+        return null;
+      }
+
       const remaining = exp - now;
-      
+
       if (remaining <= 0) {
         return { expired: true };
       }
-      
+
       const days = Math.floor(remaining / (24 * 60 * 60 * 1000));
       const hours = Math.floor((remaining % (24 * 60 * 60 * 1000)) / (60 * 60 * 1000));
       const minutes = Math.floor((remaining % (60 * 60 * 1000)) / (60 * 1000));
-      
+
       return {
         expired: false,
         days: days,
@@ -530,17 +575,72 @@
   
   // 전역 인스턴스 생성
   window.tokenValidator = new TokenValidator();
-  
+
   // 자동 검증 실행 - DOM 로드 전에도 실행
-  window.tokenValidator.validate().then(result => {
+  window.tokenValidator.validate().then(async result => {
     if (result && result.valid) {
       console.log('토큰 검증 완료, 앱 로드 계속 진행');
-      
+
       // 주기적 체크 시작 (5분마다)
       window.tokenValidator.startPeriodicCheck(5);
+
+      // 기기 등록 시도 (DeviceValidator가 로드될 때까지 대기)
+      if (result.phone) {
+        // URL에서 contents 파라미터 가져오기
+        const urlParams = new URLSearchParams(window.location.search);
+        const contents = urlParams.get('contents') || '';
+
+        console.log('[TokenValidator] 기기 등록 시도:', { phone: result.phone, contents });
+
+        // DeviceValidator 로드 대기 (최대 10초)
+        let waitCount = 0;
+        const maxWait = 100; // 100 * 100ms = 10초
+
+        while (!window.DeviceValidator && waitCount < maxWait) {
+          await new Promise(resolve => setTimeout(resolve, 100));
+          waitCount++;
+        }
+
+        if (window.DeviceValidator) {
+          // AirtableManager 로드 대기 (최대 30초)
+          waitCount = 0;
+          const maxWaitAirtable = 300; // 300 * 100ms = 30초
+
+          while ((!window.AirtableManager || !window.AirtableManager.getInstance().userBaseUrl) && waitCount < maxWaitAirtable) {
+            await new Promise(resolve => setTimeout(resolve, 100));
+            waitCount++;
+
+            if (waitCount % 50 === 0) {
+              console.log('[TokenValidator] AirtableManager 대기 중...', waitCount * 100, 'ms');
+            }
+          }
+
+          const airtableManager = window.AirtableManager ? window.AirtableManager.getInstance() : null;
+
+          if (airtableManager && airtableManager.userBaseUrl) {
+            console.log('[TokenValidator] AirtableManager 준비됨, 기기 등록 시작');
+
+            try {
+              // phone과 contents를 함께 전달
+              const registerResult = await window.DeviceValidator.registerDevice(result.phone, contents);
+              if (registerResult) {
+                console.log('[TokenValidator] ✅ 기기 등록 완료');
+              } else {
+                console.warn('[TokenValidator] 기기 등록 실패');
+              }
+            } catch (regError) {
+              console.error('[TokenValidator] 기기 등록 오류:', regError);
+            }
+          } else {
+            console.warn('[TokenValidator] AirtableManager User DB 설정 안됨, 기기 등록 건너뜀');
+          }
+        } else {
+          console.warn('[TokenValidator] DeviceValidator 로드 타임아웃');
+        }
+      }
     } else {
       console.log('토큰 검증 실패, 앱 로드 중단');
-      
+
       // 앱 초기화 중단
       if (window._initStatus) {
         window._initStatus.blocked = true;

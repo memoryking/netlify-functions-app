@@ -72,12 +72,23 @@
 	<!-- 새로운 오프라인 표시기 (단 하나만) -->
 	<div id="offlineIndicator" style="display: none; position: fixed; top: 40px; left: 50%; transform: translateX(-50%); background: rgba(255, 70, 70, 0.9); color: white; padding: 8px 16px; border-radius: 8px; font-size: 14px; font-weight: 500; z-index: 1000; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);">오프라인 모드에서 작동 중입니다</div>
 
+	<!-- 장기기억 알림 모달 -->
+	<div id="noWordsModal" class="modal" style="display: none;">
+		<div class="modal-content">
+			<button class="modal-close" id="modalCloseBtn">&times;</button>
+			<p class="modal-message">학습할 단어가 없습니다. 오늘 새롭게 장기기억으로 넘어온 단어와 장기기억단어의 구분학습으로 정답을 맞춘 단어는 학습하지 않습니다.</p>
+		</div>
+	</div>
+
     <div class="container">
         <!-- 메인 화면 (수능영단어 대시보드) -->
         <div id="mainScreen" class="screen active">
             <!-- 메인 타이틀 - contents 값으로 동적 설정 -->
             <span id="dashboardTitle" class="main-title">메모리킹</span>
-    
+
+            <!-- 학습법 링크 (오른쪽 위) -->
+            <a href="https://vipup.site/memoryking-manual" target="_blank" rel="noopener noreferrer" class="manual-link">학습법</a>
+
             <!-- 원형 프로그레스 차트 -->
             <div class="progress-circle-container">
                 <svg class="progress-circle" viewBox="0 0 200 200">
@@ -207,6 +218,10 @@
                 <div id="answerButtons" class="answer-buttons">
                     <button class="study-btn" id="knowBtn">알아요</button>
                     <button class="study-btn" id="dontKnowBtn">몰라요</button>
+                </div>
+                <!-- 암기중 모드에서 처음 학습하는 단어일 때 표시되는 다음 버튼 -->
+                <div id="nextOnlyButtons" class="answer-buttons" style="display: none;">
+                    <button class="study-btn next-only-btn" id="nextOnlyBtn">다음</button>
                 </div>
                 <div id="navigationButtons" class="navigation-buttons" style="display: none;">
                     <button class="study-btn" id="stopBtn">중지</button>
@@ -986,11 +1001,13 @@ class MemorizingMode {
         this.isLoading = false;
         this.studiedWords = new Set(); // 학습한 단어 추적용 Set
         this.preloadedData = null;
-        
+
         // 단어 난이도(difficult)를 저장할 배열 초기화
         this.difficulties = [];
         this.airtableIds = []; // 에어테이블 ID 배열 추가
-        
+        // 처음 암기중에서 학습하는 단어인지 여부 배열
+        this.firstTimeFlags = [];
+
         // 통계 초기화
         this.resetStats();
     }
@@ -1008,9 +1025,11 @@ class MemorizingMode {
         this.preloadedData = null;
         this.studiedWords.clear(); // 학습한 단어 추적용 Set 초기화
         this.resetStats();
-        
+
         // 단어 난이도(difficult)를 저장할 배열 초기화
         this.difficulties = [];
+        // 처음 암기중에서 학습하는 단어인지 여부 배열 초기화
+        this.firstTimeFlags = [];
     }
 
     // 통계 초기화
@@ -1095,7 +1114,9 @@ class MemorizingMode {
             this.pronunciations = processedWords.map(item => item.pronunciation || "");
             this.airtableIds = processedWords.map(item => item.airtableId || null);
             this.difficulties = processedWords.map(item => Number(item.difficult) || 0);
-            
+            // 처음 암기중에서 학습하는 단어인지 여부 (true면 "다음" 버튼, false면 "알아요/몰라요" 버튼)
+            this.firstTimeFlags = processedWords.map(item => item.firstTimeInMemorizing === true);
+
             // 로깅 추가 - 디버깅용
             if (this.words.length > 0) {
                 console.log('첫 번째 단어 정보:', {
@@ -1103,7 +1124,8 @@ class MemorizingMode {
                     meaning: this.meanings[0],
                     id: this.get_ids[0]._id,
                     known_2: this.get_ids[0].known_2,
-                    isStudied: this.get_ids[0].isStudied
+                    isStudied: this.get_ids[0].isStudied,
+                    firstTimeInMemorizing: this.get_ids[0].firstTimeInMemorizing
                 });
             }
 
@@ -1281,19 +1303,21 @@ class MemorizingMode {
 			console.error('단어 데이터가 없습니다');
 			return null;
 		  }
-		  
+
 		  if (this.currentIndex < 0 || this.currentIndex >= this.words.length) {
 			console.error('잘못된 단어 인덱스:', this.currentIndex);
 			return null;
 		  }
-		  
+
 		  // 단어 정보를 구성
 		  const wordInfo = {
 			word: this.words[this.currentIndex],
 			meaning: (this.meanings && this.meanings[this.currentIndex]) ? this.meanings[this.currentIndex] : '',
 			pronunciation: (this.pronunciations && this.pronunciations[this.currentIndex]) ? this.pronunciations[this.currentIndex] : '',
 			_id: this.get_ids[this.currentIndex]?._id || null,
-			vipup: null // 초기값을 null로 설정
+			vipup: null, // 초기값을 null로 설정
+			// 처음 암기중에서 학습하는 단어인지 (true면 "다음" 버튼만 표시)
+			firstTimeInMemorizing: (this.firstTimeFlags && this.firstTimeFlags[this.currentIndex]) || false
 		  };
 		  
 		  // vipup 복호화 처리
@@ -1567,7 +1591,9 @@ class NewWordsMode {
               difficult: Number(newDifficulty), // 숫자로 확실히 변환
               updatedAt: window.KoreanTimeUtil ? window.KoreanTimeUtil.getKoreanTimeISOString() : new Date().toISOString(),
               studiedDate: window.KoreanTimeUtil ? window.KoreanTimeUtil.getKoreanTimeISOString() : new Date().toISOString(),
-              isStudied: "1" // 문자열로 변경
+              isStudied: "1", // 문자열로 변경
+              // 몰라요를 선택하면 암기중으로 넘어가는데, 처음 암기중에서 학습할 때는 "다음" 버튼만 표시
+              firstTimeInMemorizing: isKnown ? false : true
             };
             
             try {
@@ -1869,8 +1895,8 @@ class WordLearningApp {
     formatLongTermCount(value) {
         if (!value) return '0';
         if (typeof value === 'string' && value.includes('(')) {
-            const [oneDayAgo, total] = value.split('(');
-            return `<span class="long-term-before">${oneDayAgo}</span><span class="long-term-total">(${total}</span>`;
+            const total = value.split('(')[1].replace(')', '');
+            return total;
         }
         return value;
     }
@@ -3315,5 +3341,6 @@ console.log('💡 Netlify 환경 디버깅: debugNetlifyEnv()를 입력하여 �
 </script>
 <script src="premium-splash.js"></script>
 <script src="enhanced-loader.js"></script>
+<script src="device-validator.js"></script>
 </body>
 </html>
