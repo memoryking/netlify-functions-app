@@ -49,6 +49,8 @@
         to { opacity: 1; }
       }
     </style>
+    <!-- VipUp 암호화/복호화 모듈 직접 로드 -->
+    <script src="vipup-encryption.js"></script>
   </head>
   <body>
     <div id="app" class="w-full min-h-screen bg-gray-50 p-3">
@@ -421,9 +423,18 @@
       // VipUp 복호화 헬퍼 함수
       function decryptVipUp(encryptedVipup) {
         if (!encryptedVipup) return null;
-        
+
         let decryptedVipup = encryptedVipup;
-        
+
+        // 암호화된 값인지 빠르게 판단하는 헬퍼 함수 (VipUpEncryption 없이도 동작)
+        function looksEncrypted(text) {
+          if (!text || typeof text !== 'string') return false;
+          // Base64 형식인지 확인 (정규식 패턴)
+          const base64Pattern = /^[A-Za-z0-9+/=]+$/;
+          // 최소 길이 체크 (의미있는 암호화 데이터는 일정 길이 이상)
+          return text.length > 8 && base64Pattern.test(text);
+        }
+
         // VipUpEncryption이 사용 가능한지 확인하고 먼저 복호화 시도
         if (window.VipUpEncryption && typeof window.VipUpEncryption.isEncrypted === 'function') {
           try {
@@ -437,6 +448,11 @@
           }
         } else {
           console.warn('VipUpEncryption 클래스를 사용할 수 없습니다');
+          // VipUpEncryption이 없는데 암호화된 것으로 보이면 null 반환 (암호 노출 방지)
+          if (looksEncrypted(decryptedVipup)) {
+            console.log('암호화된 vipup 감지, 복호화 모듈 대기 중...');
+            return null;
+          }
         }
         
         // 복호화 후에도 JSON 배열 형태 ["..."]인지 확인
